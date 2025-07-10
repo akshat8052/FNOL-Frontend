@@ -546,6 +546,69 @@ body.dark-mode .fa-sun {
     display: inline-block !important;
 }
 
+/* Mail List Scrollbar Styles */
+.mail-list {
+    max-height: 600px;
+    overflow-y: auto;
+    padding-right: 5px;
+    scrollbar-width: thin;
+    scrollbar-color: #3498db #f0f5ff;
+}
+
+.mail-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.mail-list::-webkit-scrollbar-track {
+    background: #f0f5ff;
+    border-radius: 10px;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.05);
+}
+
+.mail-list::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #3498db, #4158d0);
+    border-radius: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.mail-list::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #4158d0, #3498db);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Daily Stats Scrollbar Styles */
+.daily-stats-wrapper {
+    max-height: 350px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #3498db #f0f5ff;
+}
+
+.daily-stats-wrapper::-webkit-scrollbar {
+    width: 8px;
+}
+
+.daily-stats-wrapper::-webkit-scrollbar-track {
+    background: #f0f5ff;
+    border-radius: 10px;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.05);
+}
+
+.daily-stats-wrapper::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #3498db, #4158d0);
+    border-radius: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.daily-stats-wrapper::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #4158d0, #3498db);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+}
+
 /* Mail Sort Styles */
 .mail-sort .form-select {
     border-radius: 20px;
@@ -611,6 +674,33 @@ body.dark-mode .mail-sort::-webkit-scrollbar-track {
 
 body.dark-mode .mail-sort::-webkit-scrollbar-thumb {
     background: linear-gradient(135deg, #2d3e50, #1a252f);
+}
+
+/* Dark Mode Scrollbar Styles for Mail List and Daily Stats */
+body.dark-mode .mail-list {
+    scrollbar-color: #2d3e50 #121212;
+}
+
+body.dark-mode .mail-list::-webkit-scrollbar-track {
+    background: #121212;
+}
+
+body.dark-mode .mail-list::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #2d3e50, #1a252f);
+    border: 2px solid rgba(30, 30, 30, 0.5);
+}
+
+body.dark-mode .daily-stats-wrapper {
+    scrollbar-color: #2d3e50 #121212;
+}
+
+body.dark-mode .daily-stats-wrapper::-webkit-scrollbar-track {
+    background: #121212;
+}
+
+body.dark-mode .daily-stats-wrapper::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #2d3e50, #1a252f);
+    border: 2px solid rgba(30, 30, 30, 0.5);
 }
 
 /* Data Category Card Styles */
