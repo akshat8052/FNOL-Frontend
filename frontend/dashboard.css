@@ -1062,35 +1062,70 @@ body.dark-mode .mail-item[data-type="followup"] .mail-type-label {
 
 #extracted-data-cards {
     margin-top: 1rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 16px;
 }
 
 #extracted-data-cards .extracted-data-item {
-    border-radius: 10px;
-    padding: 18px;
+    border-radius: 12px;
+    padding: 20px;
     background: linear-gradient(135deg, #f8faff, #fff);
-    border-left: 4px solid #3498db;
     transition: all 0.3s ease;
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.06);
-    margin-bottom: 1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
     position: relative;
     overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 #extracted-data-cards .extracted-data-item::before {
     content: '';
     position: absolute;
     top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, #3498db, #2980b9);
+    z-index: 1;
+}
+
+#extracted-data-cards .extracted-data-item::after {
+    content: '';
+    position: absolute;
+    top: 0;
     right: 0;
-    width: 100px;
-    height: 100px;
+    width: 80px;
+    height: 80px;
     background: radial-gradient(circle at top right, rgba(52, 152, 219, 0.1), transparent 70%);
-    border-radius: 0 0 0 100%;
     z-index: 0;
 }
 
 #extracted-data-cards .extracted-data-item:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+    transform: translateY(-5px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+#extracted-data-cards .extracted-data-item .data-label {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 0.95rem;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+}
+
+#extracted-data-cards .extracted-data-item .data-label i {
+    margin-right: 8px;
+    color: #3498db;
+    font-size: 1rem;
+}
+
+#extracted-data-cards .extracted-data-item .data-value {
+    font-size: 1.1rem;
+    word-break: break-word;
 }
 
 /* Style the action buttons with more emphasis */
@@ -1243,8 +1278,16 @@ body.dark-mode #mail-extracted-info {
 
 body.dark-mode #extracted-data-cards .extracted-data-item {
     background: linear-gradient(135deg, #2c3e50, #1a202c);
-    border-left: 4px solid #3498db;
     color: #ecf0f1;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+body.dark-mode #extracted-data-cards .extracted-data-item .data-label {
+    color: #ecf0f1;
+}
+
+body.dark-mode #extracted-data-cards .extracted-data-item .data-value {
+    color: #bdc3c7;
 }
 
 body.dark-mode .card-header #mail-detail-title {
@@ -1463,16 +1506,28 @@ body.dark-mode .mail-detail-card {
 }
 
 /* Type-specific styling for extracted data items */
-.fnol-detail #extracted-data-cards .extracted-data-item {
-    border-left: 4px solid #3498db;
+.fnol-detail #extracted-data-cards .extracted-data-item::before {
+    background: linear-gradient(90deg, #3498db, #2980b9);
 }
 
-.non-fnol-detail #extracted-data-cards .extracted-data-item {
-    border-left: 4px solid #e74c3c;
+.non-fnol-detail #extracted-data-cards .extracted-data-item::before {
+    background: linear-gradient(90deg, #e74c3c, #c0392b);
 }
 
-.followup-detail #extracted-data-cards .extracted-data-item {
-    border-left: 4px solid #9b59b6;
+.followup-detail #extracted-data-cards .extracted-data-item::before {
+    background: linear-gradient(90deg, #9b59b6, #8e44ad);
+}
+
+.fnol-detail #extracted-data-cards .extracted-data-item .data-label i {
+    color: #3498db;
+}
+
+.non-fnol-detail #extracted-data-cards .extracted-data-item .data-label i {
+    color: #e74c3c;
+}
+
+.followup-detail #extracted-data-cards .extracted-data-item .data-label i {
+    color: #9b59b6;
 }
 
 /* Enhanced animations */
@@ -1513,20 +1568,25 @@ body.dark-mode .mail-detail-card {
 
 /* Slide-in animation for extracted data items */
 #extracted-data-cards .extracted-data-item {
-    animation: slideInFromRight 0.5s ease forwards;
+    animation: fadeInUp 0.5s ease forwards;
     animation-delay: calc(var(--item-index, 0) * 0.1s);
     opacity: 0;
+    transform-origin: center bottom;
 }
 
-@keyframes slideInFromRight {
-    from {
-        opacity: 0;
-        transform: translateX(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
+/* Add hover effects to the extracted data cards */
+#extracted-data-cards .extracted-data-item:hover {
+    transform: translateY(-5px) scale(1.03);
+    z-index: 5;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
+}
+
+#extracted-data-cards .extracted-data-item:hover .data-label i {
+    transform: scale(1.2);
+}
+
+#extracted-data-cards .extracted-data-item .data-label i {
+    transition: transform 0.3s ease;
 }
 
 /* Analytics Page Styling */
