@@ -1406,3 +1406,122 @@ body.dark-mode .btn-outline-primary:hover {
     font-size: 14px;
     box-shadow: 0 3px 5px rgba(0, 0, 0, 0.15);
 }
+
+/* Scrollable containers base styles */
+.mail-list,
+.stats-section {
+    scrollbar-width: thin;
+    scrollbar-color: #3498db #f0f5ff;
+    overflow-y: auto;
+}
+
+.mail-list {
+    max-height: 600px;
+}
+
+.stats-section {
+    max-height: 400px;
+    padding-right: 10px;
+}
+
+/* Webkit scrollbar styles for mail list and stats section */
+.mail-list::-webkit-scrollbar,
+.stats-section::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.mail-list::-webkit-scrollbar-track,
+.stats-section::-webkit-scrollbar-track {
+    background: #f0f5ff;
+    border-radius: 10px;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.05);
+    margin: 3px;
+}
+
+.mail-list::-webkit-scrollbar-thumb,
+.stats-section::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #3498db, #4158d0);
+    border-radius: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.mail-list::-webkit-scrollbar-thumb:hover,
+.stats-section::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #4158d0, #3498db);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Dark mode scrollbar adjustments for mail list and stats section */
+body.dark-mode .mail-list,
+body.dark-mode .stats-section {
+    scrollbar-color: #2d3e50 #121212;
+}
+
+body.dark-mode .mail-list::-webkit-scrollbar-track,
+body.dark-mode .stats-section::-webkit-scrollbar-track {
+    background: #121212;
+    box-shadow: inset 0 0 5px rgba(255, 255, 255, 0.05);
+}
+
+body.dark-mode .mail-list::-webkit-scrollbar-thumb,
+body.dark-mode .stats-section::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #2d3e50, #1a252f);
+    border: 2px solid rgba(30, 30, 30, 0.5);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* Daily statistics height and scroll styles */
+#daily-stats-table {
+    margin-bottom: 0;
+}
+
+.daily-stats-wrapper {
+    height: 300px; /* Match the trend chart height */
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #3498db #f0f5ff;
+}
+
+.daily-stats-wrapper::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.daily-stats-wrapper::-webkit-scrollbar-track {
+    background: #f0f5ff;
+    border-radius: 10px;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.05);
+    margin: 3px;
+}
+
+.daily-stats-wrapper::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #3498db, #4158d0);
+    border-radius: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.daily-stats-wrapper::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #4158d0, #3498db);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Dark mode scrollbar for daily statistics */
+body.dark-mode .daily-stats-wrapper {
+    scrollbar-color: #2d3e50 #121212;
+}
+
+body.dark-mode .daily-stats-wrapper::-webkit-scrollbar-track {
+    background: #121212;
+    box-shadow: inset 0 0 5px rgba(255, 255, 255, 0.05);
+}
+
+body.dark-mode .daily-stats-wrapper::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #2d3e50, #1a252f);
+    border: 2px solid rgba(30, 30, 30, 0.5);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}

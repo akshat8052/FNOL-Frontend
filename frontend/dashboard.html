@@ -250,7 +250,7 @@
                                 <h5>Overall Statistics</h5>
                                 <small id="last-updated-timestamp" class="text-muted">Last updated: -</small>
                             </div>
-                            <div class="card-body">
+                            <div class="card-body stats-section">
                                 <div class="row">
                                     <div class="col-md-3 mb-3" data-aos="zoom-in" data-aos-delay="100">
                                         <div class="stats-card bg-primary text-white">
@@ -316,22 +316,24 @@
                                     <i class="fas fa-sync-alt"></i>
                                 </button>
                             </div>
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table table-striped" id="daily-stats-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Date</th>
-                                                <th>Emails</th>
-                                                <th>Incomplete</th>
-                                                <th>Follow-ups</th>
-                                                <th>Claims</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="daily-stats-body">
-                                            <!-- Daily stats will be loaded here -->
-                                        </tbody>
-                                    </table>
+                            <div class="card-body p-0">
+                                <div class="daily-stats-wrapper">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped" id="daily-stats-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Date</th>
+                                                    <th>Emails</th>
+                                                    <th>Incomplete</th>
+                                                    <th>Follow-ups</th>
+                                                    <th>Claims</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="daily-stats-body">
+                                                <!-- Daily stats will be loaded here -->
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>
