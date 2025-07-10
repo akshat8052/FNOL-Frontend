@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FNOL Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- AOS - Animate On Scroll -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <!-- GSAP for advanced animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
+    <!-- Custom JavaScript -->
+    <script src="dashboard_new.js"></script>
+    <script src="theme_toggle.js"></script>
+    <!-- <script src="dashboard_with_dark_mode.js"></script> -->
+    <!-- <script src="dashboard.js"></script> -->
+    <!-- Google Fonts - Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- AOS - Animate On Scroll -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="dashboard.css">
+    <script>
+        // Check for dark mode preference as soon as possible to prevent flickering
+        if (localStorage.getItem('darkMode') === 'enabled') {
+            document.documentElement.classList.add('dark-mode');
+        }
+    </script>
+</head>
+<body>
+    <div class="container-fluid">
+        <header class="mb-4" data-aos="fade-down" data-aos-duration="800">
+            <div class="d-flex justify-content-between align-items-center px-3">
+                <div class="theme-toggle-wrapper">
+                    <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode">
+                        <i class="fas fa-moon"></i>
+                        <i class="fas fa-sun d-none"></i>
+                    </button>
+                </div>
+                <h1 class="text-center py-3 m-0">FNOL Processing Dashboard</h1>
+                <div class="theme-toggle-placeholder"></div>
+            </div>
+        </header>
+
+        <!-- Tab Navigation -->
+        <ul class="nav nav-tabs" id="dashboardTabs" role="tablist" data-aos="fade-up" data-aos-duration="600">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="mails-tab" data-bs-toggle="tab" data-bs-target="#mails" 
+                    type="button" role="tab" aria-controls="mails" aria-selected="true">
+                    <i class="fas fa-envelope me-2"></i>Mails
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="analytics-tab" data-bs-toggle="tab" data-bs-target="#analytics" 
+                    type="button" role="tab" aria-controls="analytics" aria-selected="false">
+                    <i class="fas fa-chart-bar me-2"></i>Analytics
+                </button>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="dashboardTabsContent">
+            <!-- Mails Tab -->
+            <div class="tab-pane fade show active" id="mails" role="tabpanel" aria-labelledby="mails-tab">
+                <!-- Dashboard Cards -->
+                <div class="row mt-4 mb-3">
+                    <div class="col-md-4" data-aos="fade-up" data-aos-delay="100" data-aos-duration="800">
+                        <div class="card dashboard-card active" id="fnol-card" onclick="selectCard('fnol')">
+                            <div class="card-body">
+                                <h5 class="card-title"><i class="fas fa-envelope-open-text me-2"></i>FNOL Mails</h5>
+                                <p class="card-text"><span class="badge bg-primary" id="fnol-count">0</span> emails received</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4" data-aos="fade-up" data-aos-delay="200" data-aos-duration="800">
+                        <div class="card dashboard-card" id="non-fnol-card" onclick="selectCard('non-fnol')">
+                            <div class="card-body">
+                                <h5 class="card-title"><i class="fas fa-envelope me-2"></i>Non-FNOL Mails</h5>
+                                <p class="card-text"><span class="badge bg-secondary" id="non-fnol-count">0</span> emails received</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4" data-aos="fade-up" data-aos-delay="300" data-aos-duration="800">
+                        <div class="card dashboard-card" id="claims-card" onclick="selectCard('claims')">
+                            <div class="card-body">
+                                <h5 class="card-title"><i class="fas fa-file-alt me-2"></i>Follow-up mails</h5>
+                                <p class="card-text"><span class="badge bg-success" id="claims-count">0</span> Follow-up mails sent</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mail Content Area -->
+                <div class="row">
+                    <!-- Mail List Sidebar -->
+                    <div class="col-md-4" data-aos="fade-right" data-aos-duration="1000">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0" id="mail-list-title">FNOL Mails</h5>
+                                <button class="btn btn-sm btn-outline-primary" onclick="refreshMailList()">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            </div>
+                            <div class="card-body p-2">
+                                <!-- Mail Status Filter -->
+                                <div class="mail-filter pb-2 mb-2 border-bottom">
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="mailStatus" id="allMailsRadio" value="all" checked onclick="filterMailsByStatus('all')">
+                                        <label class="form-check-label" for="allMailsRadio">
+                                            All<span class="badge bg-primary" id="all-mails-count">0</span>
+                                        </label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="mailStatus" id="processedMailsRadio" value="processed" onclick="filterMailsByStatus('processed')">
+                                        <label class="form-check-label" for="processedMailsRadio">
+                                            Processed<span class="badge bg-success" id="processed-mails-count">0</span>
+                                        </label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="mailStatus" id="unprocessedMailsRadio" value="unprocessed" onclick="filterMailsByStatus('unprocessed')">
+                                        <label class="form-check-label" for="unprocessedMailsRadio">
+                                            Unprocessed<span class="badge bg-warning" id="unprocessed-mails-count">0</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <!-- Mail Sort Options -->
+                                <div class="mail-sort pb-2 mb-2 border-bottom d-flex justify-content-between align-items-center">
+                                    <div class="sort-label">
+                                        <small class="text-muted"><i class="fas fa-sort me-1"></i>Sort by:</small>
+                                    </div>
+                                    <div class="sort-options">
+                                        <select class="form-select form-select-sm" id="mailSortSelect" onchange="sortMailList(this.value)">
+                                            <option value="date-desc" selected>Date (Newest)</option>
+                                            <option value="date-asc">Date (Oldest)</option>
+                                            <option value="subject-asc">Subject (A-Z)</option>
+                                            <option value="subject-desc">Subject (Z-A)</option>
+                                            <option value="status-asc">Status</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="mail-list" id="mail-list">
+                                    <!-- Mail items will be loaded here -->
+                                    <div class="mail-list-loader text-center py-5">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mail Details -->
+                    <div class="col-md-8" data-aos="fade-left" data-aos-duration="1000">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0" id="mail-detail-title">Mail Details</h5>
+                            </div>
+                            <div class="card-body">
+                                <div id="mail-details-content">
+                                    <!-- Mail details will be loaded here -->
+                                    <div class="text-center py-5 text-muted" id="no-mail-selected">
+                                        <i class="fas fa-envelope fa-3x mb-3"></i>
+                                        <h4>Select a mail to view details</h4>
+                                    </div>
+                                    
+                                    <div id="mail-data" class="d-none">
+                                        <div class="row mb-3">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <strong>From:</strong>
+                                                    <span id="mail-from"></span>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <strong>Subject:</strong>
+                                                    <span id="mail-subject"></span>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <strong>Received:</strong>
+                                                    <span id="mail-date"></span>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <strong>Status:</strong>
+                                                    <span id="mail-status"></span>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <strong>Policy Number:</strong>
+                                                    <span id="mail-policy"></span>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <strong>Incident Date:</strong>
+                                                    <span id="mail-incident-date"></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <strong>Description:</strong>
+                                            <p id="mail-description" class="border p-3 bg-light"></p>
+                                        </div>
+                                        <div class="mb-3" id="mail-additional-info">
+                                            <!-- Additional info like parent mail ID will be displayed here -->
+                                        </div>
+                                        <div class="mb-3">
+                                            <strong>Extracted Information:</strong>
+                                            <div id="mail-extracted-info" class="border p-3 rounded bg-light">
+                                                <div class="row g-3" id="extracted-data-cards">
+                                                    <!-- Extracted data cards will be generated here dynamically -->
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <strong>Actions:</strong>
+                                            <div class="btn-group">
+                                                <button class="btn btn-primary" onclick="processEmail(currentMailId)">
+                                                    <i class="fas fa-cogs me-2"></i>Process
+                                                </button>
+                                                <button class="btn btn-success" onclick="generateClaim(currentMailId)">
+                                                    <i class="fas fa-file-medical me-2"></i>Generate Claim
+                                                </button>
+                                                <button class="btn btn-warning" onclick="requestMoreInfo(currentMailId)">
+                                                    <i class="fas fa-question-circle me-2"></i>Request Info
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Tab -->
+            <div class="tab-pane fade" id="analytics" role="tabpanel" aria-labelledby="analytics-tab">
+                <div class="row mt-4">
+                    <div class="col-md-12" data-aos="fade-up" data-aos-duration="800">
+                        <div class="card mb-4">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5>Overall Statistics</h5>
+                                <small id="last-updated-timestamp" class="text-muted">Last updated: -</small>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-3 mb-3" data-aos="zoom-in" data-aos-delay="100">
+                                        <div class="stats-card bg-primary text-white">
+                                            <div class="stats-icon"><i class="fas fa-envelope"></i></div>
+                                            <div class="stats-info">
+                                                <h3 id="analytics-emails-received" class="counter">0</h3>
+                                                <p>Emails Received</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 mb-3" data-aos="zoom-in" data-aos-delay="200">
+                                        <div class="stats-card bg-warning text-dark">
+                                            <div class="stats-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                                            <div class="stats-info">
+                                                <h3 id="analytics-incomplete" class="counter">0</h3>
+                                                <p>Incomplete Info</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 mb-3" data-aos="zoom-in" data-aos-delay="300">
+                                        <div class="stats-card bg-info text-white">
+                                            <div class="stats-icon"><i class="fas fa-reply"></i></div>
+                                            <div class="stats-info">
+                                                <h3 id="analytics-followups" class="counter">0</h3>
+                                                <p>Follow-up Emails</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 mb-3" data-aos="zoom-in" data-aos-delay="400">
+                                        <div class="stats-card bg-success text-white">
+                                            <div class="stats-icon"><i class="fas fa-file-alt"></i></div>
+                                            <div class="stats-info">
+                                                <h3 id="analytics-claims" class="counter">0</h3>
+                                                <p>Claims Generated</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Chart -->
+                    <div class="col-md-8" data-aos="fade-right" data-aos-duration="1000" data-aos-delay="200">
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5>Trend Analysis</h5>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="trendChart" height="300"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Daily Stats -->
+                    <div class="col-md-4" data-aos="fade-left" data-aos-duration="1000" data-aos-delay="300">
+                        <div class="card mb-4">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5>Daily Statistics</h5>
+                                <button class="btn btn-sm btn-outline-primary" onclick="refreshStats()">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-striped" id="daily-stats-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Emails</th>
+                                                <th>Incomplete</th>
+                                                <th>Follow-ups</th>
+                                                <th>Claims</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="daily-stats-body">
+                                            <!-- Daily stats will be loaded here -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Daily Mail Status Bar Chart -->
+                    <div class="col-md-12" data-aos="fade-up" data-aos-duration="1000" data-aos-delay="400">
+                        <div class="card mb-4">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5>Daily Mail Status</h5>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="incidentBarChart" height="300"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- AOS - Animate On Scroll -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <!-- GSAP for advanced animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
+    <!-- Custom JavaScript - Only using the dark mode version which includes all functionality -->
+    <script src="dashboard_new.js"></script>
+    <script src="theme_toggle.js"></script>
+    <script src="dashboard_with_dark_mode.js"></script>
+    <script src="dashboard.js"></script>
+</body>
+</html>
