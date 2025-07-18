@@ -5,13 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FNOL Dashboard</title>
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"> -->
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- Bootstrap Bundle with Popper -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script> -->
+     <link rel="stylesheet" href="bootstrap-5.3.7-dist/css/bootstrap.min.css">
+     <script src="bootstrap-5.3.7-dist/js/bootstrap.bundle.min.js"></script>
     <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> -->
+     <script src="chart.js"></script>
     <!-- AOS - Animate On Scroll -->
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <!-- GSAP for advanced animations -->
@@ -35,6 +38,23 @@
             document.documentElement.classList.add('dark-mode');
         }
     </script>
+    <style>
+        /* Set dashboard zoom to 80% */
+        body {
+            zoom: 0.8;
+            -moz-transform: scale(0.8);
+            -moz-transform-origin: 0 0;
+            -webkit-transform: scale(0.8);
+            -webkit-transform-origin: 0 0;
+            transform: scale(0.8);
+            transform-origin: 0 0;
+        }
+        
+        /* Adjust container to prevent scrollbars when scaled */
+        .container-fluid {
+            width: 125%; /* Compensate for 80% zoom */
+        }
+    </style>
 </head>
 <body>
     <div class="container-fluid">
@@ -46,7 +66,7 @@
                         <i class="fas fa-sun d-none"></i>
                     </button>
                 </div>
-                <h1 class="text-center py-3 m-0">FNOL Processing Dashboard</h1>
+                <h3 class="text-center py-3 m-0">FNOL Processing Dashboard</h3>
                 <div class="theme-toggle-placeholder"></div>
             </div>
         </header>
@@ -299,12 +319,12 @@
                 <div class="row">
                     <!-- Chart -->
                     <div class="col-md-8" data-aos="fade-right" data-aos-duration="1000" data-aos-delay="200">
-                        <div class="card mb-4">
+                        <div class="card mb-4" style="height: 500px; min-height: 500px;">
                             <div class="card-header">
                                 <h5>Trend Analysis</h5>
                             </div>
-                            <div class="card-body">
-                                <canvas id="trendChart" height="300"></canvas>
+                            <div class="card-body" style="height: 400px; min-height: 400px;">
+                                <canvas id="trendChart" width="100%" style="display: block; width: 100% !important; height: 380px !important;"></canvas>
                             </div>
                         </div>
                     </div>
@@ -344,8 +364,8 @@
 
                 <div class="row">
                     <!-- Daily Mail Status Bar Chart -->
-                    <div class="col-md-12" data-aos="fade-up" data-aos-duration="1000" data-aos-delay="400">
-                        <div class="card mb-4">
+                    <div class="col-md-12"  data-aos="fade-up" data-aos-duration="1000" data-aos-delay="400" >
+                        <div class="card mb-4" style="height: 500px;">
                             <div class="card-header d-flex justify-content-between align-items-center">
                                 <h5>Daily Mail Status</h5>
                             </div>

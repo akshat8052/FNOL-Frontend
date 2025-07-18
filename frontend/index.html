@@ -5,13 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FNOL Dashboard</title>
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet"> -->
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- Bootstrap Bundle with Popper -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script> -->
+     <link rel="stylesheet" href="bootstrap-5.3.7-dist/css/bootstrap.min.css">
+     <script src="bootstrap-5.3.7-dist/js/bootstrap.bundle.min.js"></script>
     <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> -->
+     <!-- <script src="https://cdnjs.com/libraries/Chart.js"></script> -->
+    <script src="chart.js"></script>
     <!-- AOS - Animate On Scroll -->
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <!-- GSAP for advanced animations -->
@@ -211,7 +215,7 @@
                                             <p id="mail-description" class="border p-3 bg-light"></p>
                                         </div>
                                         <div class="mb-3" id="mail-additional-info">
-                                            <!-- Additional info like parent mail ID will be displayed here -->
+                                            <!-- Additional info like claim ID or parent mail ID will be displayed here -->
                                         </div>
                                         <div class="mb-3">
                                             <strong>Extracted Information:</strong>
@@ -368,9 +372,129 @@
     <!-- GSAP for advanced animations -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
     <!-- Custom JavaScript - Only using the dark mode version which includes all functionality -->
+    <!-- Global refresh button -->
+    <button id="globalRefreshBtn" class="global-refresh-btn" aria-label="Refresh all data">
+        <i class="fas fa-sync-alt"></i>
+        <span class="global-refresh-tooltip">Refresh all data</span>
+    </button>
+
     <script src="dashboard_new.js"></script>
     <script src="theme_toggle.js"></script>
     <script src="dashboard_with_dark_mode.js"></script>
     <script src="dashboard.js"></script>
+    
+    <!-- Global refresh button functionality -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const globalRefreshBtn = document.getElementById('globalRefreshBtn');
+            
+            globalRefreshBtn.addEventListener('click', function() {
+                // Show spinning animation
+                this.classList.add('spinning');
+                
+                // Call the refresh function to update all data
+                refreshAllData().then(() => {
+                    // Remove spinning class after refresh completes
+                    setTimeout(() => {
+                        this.classList.remove('spinning');
+                    }, 500);
+                });
+            });
+        });
+
+        // Function to refresh all data from APIs
+        async function refreshAllData() {
+            console.log('Refreshing all data from APIs...');
+            
+            try {
+                // Show loading indicators
+                showLoading(true);
+                
+                // Fetch data from APIs in parallel
+                await Promise.all([
+                    fetchFnolMails(),
+                    fetchNonFnolMails(),
+                    fetchFollowupMails(),
+                    fetchTracingStats()
+                ]);
+                
+                // Calculate statistics
+                calculateStats();
+                
+                // Update mail list
+                loadMailList();
+                
+                // Refresh charts if on analytics tab
+                if (document.querySelector('#analytics-tab').classList.contains('active')) {
+                    if (chart) {
+                        chart.destroy();
+                    }
+                    if (barChart) {
+                        barChart.destroy();
+                    }
+                    initCharts();
+                }
+                
+                // Hide loading indicators
+                showLoading(false);
+                
+                // Show success notification
+                showNotification('Data refreshed successfully!');
+                
+                return true;
+            } catch (error) {
+                console.error('Error refreshing data:', error);
+                showNotification('Failed to refresh data. Please try again.', 'error');
+                showLoading(false);
+                return false;
+            }
+        }
+
+        // Function to show notification
+        function showNotification(message, type = 'success') {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.style.position = 'fixed';
+            notification.style.bottom = '90px';
+            notification.style.right = '25px';
+            notification.style.padding = '10px 20px';
+            notification.style.borderRadius = '4px';
+            notification.style.zIndex = '1000';
+            notification.style.opacity = '0';
+            notification.style.transition = 'opacity 0.3s ease';
+            
+            if (type === 'success') {
+                notification.style.backgroundColor = 'rgba(46, 204, 113, 0.9)';
+            } else {
+                notification.style.backgroundColor = 'rgba(231, 76, 60, 0.9)';
+            }
+            
+            notification.style.color = 'white';
+            notification.style.boxShadow = '0 3px 10px rgba(0, 0, 0, 0.2)';
+            
+            // Add icon and message
+            notification.innerHTML = `
+                <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'} me-2"></i>
+                ${message}
+            `;
+            
+            // Add to body
+            document.body.appendChild(notification);
+            
+            // Show notification
+            setTimeout(() => {
+                notification.style.opacity = '1';
+            }, 10);
+            
+            // Auto hide after 3 seconds
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+    </script>
 </body>
 </html>

@@ -552,6 +552,12 @@ function loadMailList() {
                 typeLabel = 'Follow-up';
             }
             
+            // Check if mail has a claim ID to display - with enhanced highlighting
+            const claimIdBadge = mail.claim_id ? 
+                `<span class="badge claim-badge" title="Claim ID: ${mail.claim_id}">
+                    <i class="fas fa-star me-1"></i>${mail.claim_id.substring(0, 8)}${mail.claim_id.length > 8 ? '...' : ''}
+                </span>` : '';
+                
             mailItem.innerHTML = `
                 <div class="mail-header d-flex justify-content-between align-items-center mb-2">
                     <div class="mail-subject-container">
@@ -565,6 +571,7 @@ function loadMailList() {
                     <div class="mail-meta">
                         <small class="mail-from">${from}</small>
                         <small class="mail-type-label">${typeLabel}</small>
+                        ${claimIdBadge}
                     </div>
                     <small class="mail-date">${formattedDate}</small>
                 </div>
@@ -759,11 +766,26 @@ function showMailDetails(mailId) {
     // Handle additional info section
     const mailAdditionalInfo = document.getElementById('mail-additional-info');
     if (mailAdditionalInfo) {
+        let additionalInfoHtml = '';
+
+        // Display claim ID for FNOL mails if available
+        if (currentMailType === 'fnol' && mailData.claim_id) {
+            additionalInfoHtml += `
+                <div class="mb-3 claim-id-container">
+                    <strong><i class="fas fa-file-invoice me-2"></i>Claim ID:</strong>
+                    <span class="badge" style="font-size: 1.05rem; padding: 0.6rem 0.85rem;">
+                        <i class="fas fa-star me-2"></i>${mailData.claim_id}
+                    </span>
+                </div>
+            `;
+        }
+
+        // Display parent ID for follow-up mails
         if (currentMailType === 'claims') {
             const parentId = mailData.parent_id || '';
-            mailAdditionalInfo.innerHTML = `
+            additionalInfoHtml += `
                 <div class="mb-3">
-                    <strong>Related to:</strong>
+                    <strong><i class="fas fa-reply me-2"></i>Related to:</strong>
                     <span>${parentId || 'No parent mail'}</span>
                 </div>
                 ${parentId ? `
@@ -774,6 +796,22 @@ function showMailDetails(mailId) {
                 </div>
                 ` : ''}
             `;
+            
+            // Display claim ID for follow-up mails if available
+            if (mailData.claim_id) {
+                additionalInfoHtml += `
+                    <div class="mb-3 claim-id-container">
+                        <strong><i class="fas fa-file-invoice me-2"></i>Claim ID:</strong>
+                        <span class="badge" style="font-size: 1.05rem; padding: 0.6rem 0.85rem;">
+                            <i class="fas fa-star me-2"></i>${mailData.claim_id}
+                        </span>
+                    </div>
+                `;
+            }
+        }
+
+        if (additionalInfoHtml) {
+            mailAdditionalInfo.innerHTML = additionalInfoHtml;
             mailAdditionalInfo.classList.remove('d-none');
         } else {
             mailAdditionalInfo.innerHTML = '';
