@@ -233,6 +233,12 @@
                                         <div class="mb-3" id="mail-additional-info">
                                             <!-- Additional info like parent mail ID will be displayed here -->
                                         </div>
+                                        <div class="mb-3 d-none" id="mail-summary-points-container">
+                                            <strong>Summary Points:</strong>
+                                            <ul id="mail-summary-points" class="border p-3 bg-light list-group">
+                                                <!-- Summary points will be displayed here -->
+                                            </ul>
+                                        </div>
                                         <div class="mb-3">
                                             <strong>Extracted Information:</strong>
                                             <div id="mail-extracted-info" class="border p-3 rounded bg-light">
@@ -371,6 +377,32 @@
                             </div>
                             <div class="card-body">
                                 <canvas id="incidentBarChart" height="300"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- User Mail Distribution Pie Chart -->
+                    <div class="col-md-6"  data-aos="fade-up" data-aos-duration="1000" data-aos-delay="500" >
+                        <div class="card mb-4" style="height: 400px;">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5>Mail Distribution by User Category</h5>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="userMailsPieChart" height="300"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Placeholder for another chart if needed -->
+                    <div class="col-md-6"  data-aos="fade-up" data-aos-duration="1000" data-aos-delay="600" >
+                        <div class="card mb-4" style="height: 400px;">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5>Additional Analytics</h5>
+                            </div>
+                            <div class="card-body d-flex flex-column justify-content-center align-items-center">
+                                <i class="fas fa-chart-line fa-4x mb-3 text-muted"></i>
+                                <p class="text-center text-muted">Space for additional analytics visualizations</p>
                             </div>
                         </div>
                     </div>

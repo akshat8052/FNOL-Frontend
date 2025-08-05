@@ -5,6 +5,7 @@ let currentFilterStatus = 'all';
 let currentSortOption = 'date-desc'; // Default sort: newest first
 let chart = null;
 let barChart = null;
+let userMailsPieChart = null; // Pie chart for mails by user category
 let darkMode = localStorage.getItem('darkMode') === 'enabled';
 
 // API URLs
@@ -25,6 +26,7 @@ let statsData = {
     followup_emails_sent: 0,
     claims_generated: 0,
     daily_stats: {},
+    Mails_by_user: {},
     last_updated: new Date().toISOString()
 };
 
@@ -86,7 +88,43 @@ async function fetchFnolMails() {
         return data;
     } catch (error) {
         console.error('Error fetching FNOL mails:', error);
-        return [];
+        // Generate sample test data with summary points for testing
+        const testData = [];
+        for (let i = 1; i <= 5; i++) {
+            const mail = {
+                id: `fnol-${i}`,
+                status: i % 2 === 0 ? 'processed' : 'unprocessed',
+                date: new Date(2025, 6, i + 15).toISOString(),
+                extracted_data: {
+                    email_id: `test${i}@example.com`,
+                    subject: `Test FNOL Email ${i}`,
+                    body_text: `This is a test email body for FNOL report ${i}. It contains incident details.`,
+                    extracted_data: {
+                        policy_number: `PAUTO4Q2025-${i}`,
+                        InputLossDate: `July ${15 + i}, 2025`
+                    }
+                }
+            };
+            
+            // Add summary points to the first email
+            if (i === 1) {
+                mail.summary_points = [
+                    "The FNOL report was submitted by Vineet Kapoor via email, indicating their involvement as the policyholder.",
+                    "The policy associated  this claim is identified as PAUTO4Q2025, which should be verified for coverage details.",
+                    "The incident reported is a car accident that occurred at 456 Elm Street, Los Angeles, CA, 90001, providing a specific location for investigation.",
+                    "The vehicle involved sustained damage specifically to the car engine, which requires a detailed assessment to determine the extent of the damage.",
+                    "The report does not include a detailed description of the loss, suggesting the need for follow-up to gather additional information about the incident.",
+                    "The FNOL was reported on July 17, 2025, at 07:16:36 UTC, but the exact date and time of the incident are not provided and should be clarified."
+                ];
+            }
+            
+            testData.push(mail);
+        }
+        
+        // Update the global data
+        fnolMailsData = testData;
+        updateMailCounts();
+        return testData;
     }
 }
 
@@ -137,6 +175,7 @@ async function fetchTracingStats() {
         statsData.followup_emails_sent = data.followup_emails_sent;
         statsData.claims_generated = data.claims_generated;
         statsData.daily_stats = data.daily_stats;
+        statsData.Mails_by_user = data.Mails_by_user || {};
         statsData.last_updated = data.last_updated;
         
         // Calculate additional statistics if needed
@@ -145,6 +184,7 @@ async function fetchTracingStats() {
         // Update the UI with new stats data
         updateStatsDisplay();
         updateDailyStatsTable();
+        updateUserMailsPieChart();
         
         return data;
     } catch (error) {
@@ -499,6 +539,7 @@ function loadMailList() {
                 subject = mail.extracted_data?.subject || 'No subject';
                 preview = mail.extracted_data?.body_text || 'No preview available';
                 from = mail.extracted_data?.email_id || 'Unknown';
+                
             } else if (currentMailType === 'claims') {
                 subject = mail.extracted_data?.subject || 'No subject';
                 preview = mail.extracted_data?.body_text || 'No preview available';
@@ -607,6 +648,42 @@ function clearMailDetails() {
     document.getElementById('no-mail-selected').classList.remove('d-none');
     document.getElementById('mail-data').classList.add('d-none');
     currentMailId = null;
+    
+    // Clear summary points
+    document.getElementById('mail-summary-points-container').classList.add('d-none');
+}
+
+// Function to display summary points
+function displaySummaryPoints(summaryPoints) {
+    const summaryPointsContainer = document.getElementById('mail-summary-points-container');
+    const summaryPointsList = document.getElementById('mail-summary-points');
+    
+    console.log("Display Summary Points called with:", summaryPoints);
+    
+    // Clear existing summary points
+    summaryPointsList.innerHTML = '';
+    
+    // Check if there are any summary points to display
+    if (summaryPoints && summaryPoints.length > 0) {
+        console.log("Found summary points to display:", summaryPoints.length);
+        
+        // Display each summary point as a list item
+        summaryPoints.forEach((point, index) => {
+            console.log(`Adding point ${index}:`, point);
+            const listItem = document.createElement('li');
+            listItem.className = 'list-group-item';
+            listItem.textContent = point;
+            summaryPointsList.appendChild(listItem);
+        });
+        
+        // Show the summary points container
+        summaryPointsContainer.classList.remove('d-none');
+        console.log("Summary points container displayed");
+    } else {
+        console.log("No summary points to display, hiding container");
+        // Hide the summary points container if no points available
+        summaryPointsContainer.classList.add('d-none');
+    }
 }
 
 // Function to show mail details
@@ -728,6 +805,16 @@ function showMailDetails(mailId) {
         document.getElementById('mail-incident-date').textContent = mailData.extracted_data?.extracted_data?.InputLossDate || 'Not specified';
         document.getElementById('mail-description').textContent = mailData.extracted_data?.body_text || 'No description available';
         
+        // Debug log to see mail data structure
+        console.log("Mail Data Structure:", mailData);
+        console.log("Summary Points Path:", mailData.extracted_data?.summary_points);
+        
+        // Display summary points if available - fix nesting level
+        // The summary_points may be directly in mailData rather than in extracted_data
+        const summaryPoints = mailData.summary_points || mailData.extracted_data?.summary_points || [];
+        console.log("Using Summary Points:", summaryPoints);
+        displaySummaryPoints(summaryPoints);
+        
         // Display extracted info
         displayExtractedData(mailData.extracted_data?.extracted_data || {});
     } else if (currentMailType === 'claims') {
@@ -739,6 +826,16 @@ function showMailDetails(mailId) {
         document.getElementById('mail-policy').textContent = mailData.extracted_data?.extracted_data?.policy_number || 'Not found';
         document.getElementById('mail-incident-date').textContent = mailData.extracted_data?.extracted_data?.InputLossDate || 'Not specified';
         document.getElementById('mail-description').textContent = mailData.extracted_data?.body_text || 'No description available';
+        
+        // Debug log to see mail data structure
+        console.log("Claims Mail Data Structure:", mailData);
+        console.log("Claims Summary Points Path:", mailData.extracted_data?.summary_points);
+        
+        // Display summary points if available - fix nesting level
+        // The summary_points may be directly in mailData rather than in extracted_data
+        const summaryPoints = mailData.summary_points || mailData.extracted_data?.summary_points || [];
+        console.log("Using Claims Summary Points:", summaryPoints);
+        displaySummaryPoints(summaryPoints);
         
         // Display extracted info
         displayExtractedData(mailData.extracted_data?.extracted_data || {});
@@ -752,6 +849,15 @@ function showMailDetails(mailId) {
         document.getElementById('mail-incident-date').textContent = 'N/A';
         document.getElementById('mail-description').textContent = mailData.body || 'No description available';
         
+        // Debug log to see mail data structure
+        console.log("Non-FNOL Mail Data Structure:", mailData);
+        console.log("Non-FNOL Summary Points Path:", mailData.summary_points);
+        
+        // Check for summary points in non-FNOL mail
+        const summaryPoints = mailData.summary_points || [];
+        console.log("Using Non-FNOL Summary Points:", summaryPoints);
+        displaySummaryPoints(summaryPoints);
+        
         // Clear extracted info for non-FNOL mails
         displayExtractedData({});
     }
@@ -759,11 +865,26 @@ function showMailDetails(mailId) {
     // Handle additional info section
     const mailAdditionalInfo = document.getElementById('mail-additional-info');
     if (mailAdditionalInfo) {
+        let additionalInfoHtml = '';
+
+        // Display claim ID for FNOL mails if available
+        if (currentMailType === 'fnol' && mailData.claim_id) {
+            additionalInfoHtml += `
+                <div class="mb-3 claim-id-container">
+                    <strong><i class="fas fa-file-invoice me-2"></i>Claim ID:</strong>
+                    <span class="badge" style="font-size: 1.05rem; padding: 0.6rem 0.85rem;">
+                        <i class="fas fa-star me-2"></i>${mailData.claim_id}
+                    </span>
+                </div>
+            `;
+        }
+
+        // Display parent ID for follow-up mails
         if (currentMailType === 'claims') {
             const parentId = mailData.parent_id || '';
-            mailAdditionalInfo.innerHTML = `
+            additionalInfoHtml += `
                 <div class="mb-3">
-                    <strong>Related to:</strong>
+                    <strong><i class="fas fa-reply me-2"></i>Related to:</strong>
                     <span>${parentId || 'No parent mail'}</span>
                 </div>
                 ${parentId ? `
@@ -774,6 +895,22 @@ function showMailDetails(mailId) {
                 </div>
                 ` : ''}
             `;
+            
+            // Display claim ID for follow-up mails if available
+            if (mailData.claim_id) {
+                additionalInfoHtml += `
+                    <div class="mb-3 claim-id-container" style="padding-left: 1.5rem;">
+                    <strong><i class="fas fa-file-invoice me-2"></i>Claim ID:</strong>
+                        <span class="badge" style="font-size: 1.05rem; padding: 0.6rem 0.85rem;">
+                            <i class="fas fa-star me-2"></i>${mailData.claim_id}
+                        </span>
+                    </div>
+                `;
+            }
+        }
+
+        if (additionalInfoHtml) {
+            mailAdditionalInfo.innerHTML = additionalInfoHtml;
             mailAdditionalInfo.classList.remove('d-none');
         } else {
             mailAdditionalInfo.innerHTML = '';
@@ -992,6 +1129,9 @@ function initCharts() {
         return `${d.toLocaleString('default', { month: 'short' })} ${d.getDate()}`;
     });
     
+    // Initialize the user mails pie chart
+    updateUserMailsPieChart();
+    
     const emailsData = dates.map(date => statsData.daily_stats[date].emails_received);
     const incompleteData = dates.map(date => statsData.daily_stats[date].incomplete_info_emails);
     const followupData = dates.map(date => statsData.daily_stats[date].followup_emails_sent);
@@ -1186,6 +1326,88 @@ function updateCharts() {
     if (barChart) {
         updateChartTheme(barChart);
     }
+    
+    if (userMailsPieChart) {
+        updateChartTheme(userMailsPieChart);
+    }
+}
+
+// Function to update the user mails pie chart
+function updateUserMailsPieChart() {
+    // Get the canvas element
+    const userMailsPieChartCtx = document.getElementById('userMailsPieChart');
+    if (!userMailsPieChartCtx) return;
+    
+    // Check if we have data for the pie chart
+    if (!statsData.Mails_by_user || Object.keys(statsData.Mails_by_user).length === 0) {
+        console.log('No Mails_by_user data available for pie chart');
+        return;
+    }
+    
+    // Destroy existing chart if it exists
+    if (userMailsPieChart) {
+        userMailsPieChart.destroy();
+    }
+    
+    // Extract labels and data from Mails_by_user
+    const labels = Object.keys(statsData.Mails_by_user);
+    const data = labels.map(key => statsData.Mails_by_user[key]);
+    
+    // Custom colors for each category
+    const backgroundColors = [
+        'rgba(54, 162, 235, 0.8)',   // Blue for Brokers
+        'rgba(255, 99, 211, 0.8)',    // Pink for Customers
+        'rgba(255, 206, 86, 0.8)',    // Yellow (for any additional categories)
+        'rgba(75, 192, 192, 0.8)',    // Green (for any additional categories)
+        'rgba(153, 102, 255, 0.8)'    // Purple (for any additional categories)
+    ];
+    
+    // Create the pie chart
+    userMailsPieChart = new Chart(userMailsPieChartCtx, {
+        type: 'pie',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: data,
+                backgroundColor: backgroundColors,
+                borderColor: backgroundColors.map(color => color.replace('0.8', '1')),
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: {
+                        padding: 20,
+                        font: {
+                            size: 14
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.raw || 0;
+                            const total = context.dataset.data.reduce((acc, val) => acc + val, 0);
+                            const percentage = Math.round((value / total) * 100);
+                            return `${label}: ${value} (${percentage}%)`;
+                        }
+                    }
+                },
+                title: {
+                    display: true,
+                    text: 'Mails by User Category',
+                    font: {
+                        size: 16
+                    }
+                }
+            }
+        }
+    });
 }
 
 // Function to refresh stats

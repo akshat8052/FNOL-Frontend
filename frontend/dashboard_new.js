@@ -5,6 +5,7 @@ let currentFilterStatus = 'all';
 let currentSortOption = 'date-desc'; // Default sort: newest first
 let chart = null;
 let barChart = null;
+let userMailsPieChart = null; // Pie chart for mails by user category
 let darkMode = localStorage.getItem('darkMode') === 'enabled';
 
 // API URLs
@@ -25,6 +26,7 @@ let statsData = {
     followup_emails_sent: 0,
     claims_generated: 0,
     daily_stats: {},
+    Mails_by_user: {},
     last_updated: new Date().toISOString()
 };
 
@@ -86,7 +88,43 @@ async function fetchFnolMails() {
         return data;
     } catch (error) {
         console.error('Error fetching FNOL mails:', error);
-        return [];
+        // Generate sample test data with summary points for testing
+        const testData = [];
+        for (let i = 1; i <= 5; i++) {
+            const mail = {
+                id: `fnol-${i}`,
+                status: i % 2 === 0 ? 'processed' : 'unprocessed',
+                date: new Date(2025, 6, i + 15).toISOString(),
+                extracted_data: {
+                    email_id: `test${i}@example.com`,
+                    subject: `Test FNOL Email ${i}`,
+                    body_text: `This is a test email body for FNOL report ${i}. It contains incident details.`,
+                    extracted_data: {
+                        policy_number: `PAUTO4Q2025-${i}`,
+                        InputLossDate: `July ${15 + i}, 2025`
+                    }
+                }
+            };
+            
+            // Add summary points to the first email
+            if (i === 1) {
+                mail.summary_points = [
+                    "The FNOL report was submitted by Vineet Kapoor via email, indicating their involvement as the policyholder.",
+                    "The policy associated  this claim is identified as PAUTO4Q2025, which should be verified for coverage details.",
+                    "The incident reported is a car accident that occurred at 456 Elm Street, Los Angeles, CA, 90001, providing a specific location for investigation.",
+                    "The vehicle involved sustained damage specifically to the car engine, which requires a detailed assessment to determine the extent of the damage.",
+                    "The report does not include a detailed description of the loss, suggesting the need for follow-up to gather additional information about the incident.",
+                    "The FNOL was reported on July 17, 2025, at 07:16:36 UTC, but the exact date and time of the incident are not provided and should be clarified."
+                ];
+            }
+            
+            testData.push(mail);
+        }
+        
+        // Update the global data
+        fnolMailsData = testData;
+        updateMailCounts();
+        return testData;
     }
 }
 
@@ -137,6 +175,7 @@ async function fetchTracingStats() {
         statsData.followup_emails_sent = data.followup_emails_sent;
         statsData.claims_generated = data.claims_generated;
         statsData.daily_stats = data.daily_stats;
+        statsData.Mails_by_user = data.Mails_by_user || {};
         statsData.last_updated = data.last_updated;
         
         // Calculate additional statistics if needed
@@ -145,6 +184,7 @@ async function fetchTracingStats() {
         // Update the UI with new stats data
         updateStatsDisplay();
         updateDailyStatsTable();
+        updateUserMailsPieChart();
         
         return data;
     } catch (error) {
@@ -499,6 +539,7 @@ function loadMailList() {
                 subject = mail.extracted_data?.subject || 'No subject';
                 preview = mail.extracted_data?.body_text || 'No preview available';
                 from = mail.extracted_data?.email_id || 'Unknown';
+                
             } else if (currentMailType === 'claims') {
                 subject = mail.extracted_data?.subject || 'No subject';
                 preview = mail.extracted_data?.body_text || 'No preview available';
@@ -552,12 +593,6 @@ function loadMailList() {
                 typeLabel = 'Follow-up';
             }
             
-            // Check if mail has a claim ID to display - with enhanced highlighting
-            const claimIdBadge = mail.claim_id ? 
-                `<span class="badge claim-badge" title="Claim ID: ${mail.claim_id}">
-                    <i class="fas fa-star me-1"></i>${mail.claim_id.substring(0, 8)}${mail.claim_id.length > 8 ? '...' : ''}
-                </span>` : '';
-                
             mailItem.innerHTML = `
                 <div class="mail-header d-flex justify-content-between align-items-center mb-2">
                     <div class="mail-subject-container">
@@ -571,7 +606,6 @@ function loadMailList() {
                     <div class="mail-meta">
                         <small class="mail-from">${from}</small>
                         <small class="mail-type-label">${typeLabel}</small>
-                        ${claimIdBadge}
                     </div>
                     <small class="mail-date">${formattedDate}</small>
                 </div>
@@ -614,6 +648,42 @@ function clearMailDetails() {
     document.getElementById('no-mail-selected').classList.remove('d-none');
     document.getElementById('mail-data').classList.add('d-none');
     currentMailId = null;
+    
+    // Clear summary points
+    document.getElementById('mail-summary-points-container').classList.add('d-none');
+}
+
+// Function to display summary points
+function displaySummaryPoints(summaryPoints) {
+    const summaryPointsContainer = document.getElementById('mail-summary-points-container');
+    const summaryPointsList = document.getElementById('mail-summary-points');
+    
+    console.log("Display Summary Points called with:", summaryPoints);
+    
+    // Clear existing summary points
+    summaryPointsList.innerHTML = '';
+    
+    // Check if there are any summary points to display
+    if (summaryPoints && summaryPoints.length > 0) {
+        console.log("Found summary points to display:", summaryPoints.length);
+        
+        // Display each summary point as a list item
+        summaryPoints.forEach((point, index) => {
+            console.log(`Adding point ${index}:`, point);
+            const listItem = document.createElement('li');
+            listItem.className = 'list-group-item';
+            listItem.textContent = point;
+            summaryPointsList.appendChild(listItem);
+        });
+        
+        // Show the summary points container
+        summaryPointsContainer.classList.remove('d-none');
+        console.log("Summary points container displayed");
+    } else {
+        console.log("No summary points to display, hiding container");
+        // Hide the summary points container if no points available
+        summaryPointsContainer.classList.add('d-none');
+    }
 }
 
 // Function to show mail details
@@ -735,6 +805,16 @@ function showMailDetails(mailId) {
         document.getElementById('mail-incident-date').textContent = mailData.extracted_data?.extracted_data?.InputLossDate || 'Not specified';
         document.getElementById('mail-description').textContent = mailData.extracted_data?.body_text || 'No description available';
         
+        // Debug log to see mail data structure
+        console.log("Mail Data Structure:", mailData);
+        console.log("Summary Points Path:", mailData.extracted_data?.summary_points);
+        
+        // Display summary points if available - fix nesting level
+        // The summary_points may be directly in mailData rather than in extracted_data
+        const summaryPoints = mailData.summary_points || mailData.extracted_data?.summary_points || [];
+        console.log("Using Summary Points:", summaryPoints);
+        displaySummaryPoints(summaryPoints);
+        
         // Display extracted info
         displayExtractedData(mailData.extracted_data?.extracted_data || {});
     } else if (currentMailType === 'claims') {
@@ -747,6 +827,16 @@ function showMailDetails(mailId) {
         document.getElementById('mail-incident-date').textContent = mailData.extracted_data?.extracted_data?.InputLossDate || 'Not specified';
         document.getElementById('mail-description').textContent = mailData.extracted_data?.body_text || 'No description available';
         
+        // Debug log to see mail data structure
+        console.log("Claims Mail Data Structure:", mailData);
+        console.log("Claims Summary Points Path:", mailData.extracted_data?.summary_points);
+        
+        // Display summary points if available - fix nesting level
+        // The summary_points may be directly in mailData rather than in extracted_data
+        const summaryPoints = mailData.summary_points || mailData.extracted_data?.summary_points || [];
+        console.log("Using Claims Summary Points:", summaryPoints);
+        displaySummaryPoints(summaryPoints);
+        
         // Display extracted info
         displayExtractedData(mailData.extracted_data?.extracted_data || {});
     } else {
@@ -758,6 +848,15 @@ function showMailDetails(mailId) {
         document.getElementById('mail-policy').textContent = 'N/A';
         document.getElementById('mail-incident-date').textContent = 'N/A';
         document.getElementById('mail-description').textContent = mailData.body || 'No description available';
+        
+        // Debug log to see mail data structure
+        console.log("Non-FNOL Mail Data Structure:", mailData);
+        console.log("Non-FNOL Summary Points Path:", mailData.summary_points);
+        
+        // Check for summary points in non-FNOL mail
+        const summaryPoints = mailData.summary_points || [];
+        console.log("Using Non-FNOL Summary Points:", summaryPoints);
+        displaySummaryPoints(summaryPoints);
         
         // Clear extracted info for non-FNOL mails
         displayExtractedData({});
@@ -800,8 +899,8 @@ function showMailDetails(mailId) {
             // Display claim ID for follow-up mails if available
             if (mailData.claim_id) {
                 additionalInfoHtml += `
-                    <div class="mb-3 claim-id-container">
-                        <strong><i class="fas fa-file-invoice me-2"></i>Claim ID:</strong>
+                    <div class="mb-3 claim-id-container" style="padding-left: 1.5rem;">
+                    <strong><i class="fas fa-file-invoice me-2"></i>Claim ID:</strong>
                         <span class="badge" style="font-size: 1.05rem; padding: 0.6rem 0.85rem;">
                             <i class="fas fa-star me-2"></i>${mailData.claim_id}
                         </span>
@@ -816,6 +915,17 @@ function showMailDetails(mailId) {
         } else {
             mailAdditionalInfo.innerHTML = '';
             mailAdditionalInfo.classList.add('d-none');
+        }
+    }
+    
+    // Display attachments section for FNOL and claims mails with claim_id
+    if ((currentMailType === 'fnol' || currentMailType === 'claims') && mailData.claim_id) {
+        displayAttachments(mailData);
+    } else {
+        // Hide attachments container if no attachments or no claim ID
+        const attachmentsContainer = document.getElementById('mail-attachments-container');
+        if (attachmentsContainer) {
+            attachmentsContainer.classList.add('d-none');
         }
     }
     
@@ -1030,6 +1140,9 @@ function initCharts() {
         return `${d.toLocaleString('default', { month: 'short' })} ${d.getDate()}`;
     });
     
+    // Initialize the user mails pie chart
+    updateUserMailsPieChart();
+    
     const emailsData = dates.map(date => statsData.daily_stats[date].emails_received);
     const incompleteData = dates.map(date => statsData.daily_stats[date].incomplete_info_emails);
     const followupData = dates.map(date => statsData.daily_stats[date].followup_emails_sent);
@@ -1224,6 +1337,88 @@ function updateCharts() {
     if (barChart) {
         updateChartTheme(barChart);
     }
+    
+    if (userMailsPieChart) {
+        updateChartTheme(userMailsPieChart);
+    }
+}
+
+// Function to update the user mails pie chart
+function updateUserMailsPieChart() {
+    // Get the canvas element
+    const userMailsPieChartCtx = document.getElementById('userMailsPieChart');
+    if (!userMailsPieChartCtx) return;
+    
+    // Check if we have data for the pie chart
+    if (!statsData.Mails_by_user || Object.keys(statsData.Mails_by_user).length === 0) {
+        console.log('No Mails_by_user data available for pie chart');
+        return;
+    }
+    
+    // Destroy existing chart if it exists
+    if (userMailsPieChart) {
+        userMailsPieChart.destroy();
+    }
+    
+    // Extract labels and data from Mails_by_user
+    const labels = Object.keys(statsData.Mails_by_user);
+    const data = labels.map(key => statsData.Mails_by_user[key]);
+    
+    // Custom colors for each category
+    const backgroundColors = [
+        'rgba(54, 162, 235, 0.8)',   // Blue for Brokers
+        'rgba(255, 99, 211, 0.8)',    // Pink for Customers
+        'rgba(255, 206, 86, 0.8)',    // Yellow (for any additional categories)
+        'rgba(75, 192, 192, 0.8)',    // Green (for any additional categories)
+        'rgba(153, 102, 255, 0.8)'    // Purple (for any additional categories)
+    ];
+    
+    // Create the pie chart
+    userMailsPieChart = new Chart(userMailsPieChartCtx, {
+        type: 'pie',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: data,
+                backgroundColor: backgroundColors,
+                borderColor: backgroundColors.map(color => color.replace('0.8', '1')),
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: {
+                        padding: 20,
+                        font: {
+                            size: 14
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.raw || 0;
+                            const total = context.dataset.data.reduce((acc, val) => acc + val, 0);
+                            const percentage = Math.round((value / total) * 100);
+                            return `${label}: ${value} (${percentage}%)`;
+                        }
+                    }
+                },
+                title: {
+                    display: true,
+                    text: 'Mails by User Category',
+                    font: {
+                        size: 16
+                    }
+                }
+            }
+        }
+    });
 }
 
 // Function to refresh stats
@@ -1298,6 +1493,381 @@ if (typeof updateChartTheme !== 'function') {
         // Update the chart
         chartInstance.update();
     }
+}
+
+// Function to display attachments
+function displayAttachments(mailData) {
+    const attachmentsContainer = document.getElementById('mail-attachments-container');
+    if (!attachmentsContainer) return;
+    
+    // Check if we have attachments
+    const attachments = mailData.extracted_data?.attachment_path || [];
+    const claimId = mailData.claim_id;
+    
+    if (!claimId || attachments.length === 0) {
+        attachmentsContainer.innerHTML = '';
+        attachmentsContainer.classList.add('d-none');
+        return;
+    }
+    
+    // Create attachments HTML
+    let attachmentsHtml = `
+        <div class="attachments-header mb-3">
+            <strong><i class="fas fa-paperclip me-2"></i>Attachments (${attachments.length})</strong>
+        </div>
+        <div class="attachments-grid">
+    `;
+    
+    attachments.forEach((attachment, index) => {
+        const fileName = attachment.split('\\').pop() || attachment.split('/').pop() || `attachment_${index + 1}`;
+        const fileExtension = fileName.split('.').pop()?.toLowerCase() || '';
+        const fileIcon = getFileIcon(fileExtension);
+        
+        attachmentsHtml += `
+            <div class="attachment-item" data-attachment="${attachment}" data-claim-id="${claimId}">
+                <div class="attachment-icon">
+                    <i class="${fileIcon}"></i>
+                </div>
+                <div class="attachment-info">
+                    <div class="attachment-name" title="${fileName}">${fileName}</div>
+                    <div class="attachment-size text-muted">Click to download</div>
+                </div>
+                <div class="attachment-actions">
+                    <button class="btn btn-sm btn-outline-primary me-2" onclick="previewAttachment('${claimId}', '${fileName}')" title="Preview">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="btn btn-sm btn-primary" onclick="downloadAttachment('${claimId}', '${fileName}')" title="Download">
+                        <i class="fas fa-download"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+    
+    attachmentsHtml += `
+        </div>
+        <div class="attachments-actions mt-3">
+            <button class="btn btn-outline-success btn-sm" onclick="downloadAllAttachments('${claimId}', ${JSON.stringify(attachments.map(att => att.split('\\').pop() || att.split('/').pop()))})">
+                <i class="fas fa-download me-2"></i>Download All
+            </button>
+        </div>
+    `;
+    
+    attachmentsContainer.innerHTML = attachmentsHtml;
+    attachmentsContainer.classList.remove('d-none');
+}
+
+// Function to get file icon based on extension
+function getFileIcon(extension) {
+    const iconMap = {
+        'pdf': 'fas fa-file-pdf text-danger',
+        'doc': 'fas fa-file-word text-primary',
+        'docx': 'fas fa-file-word text-primary',
+        'xls': 'fas fa-file-excel text-success',
+        'xlsx': 'fas fa-file-excel text-success',
+        'ppt': 'fas fa-file-powerpoint text-warning',
+        'pptx': 'fas fa-file-powerpoint text-warning',
+        'jpg': 'fas fa-file-image text-info',
+        'jpeg': 'fas fa-file-image text-info',
+        'png': 'fas fa-file-image text-info',
+        'gif': 'fas fa-file-image text-info',
+        'bmp': 'fas fa-file-image text-info',
+        'txt': 'fas fa-file-alt text-secondary',
+        'zip': 'fas fa-file-archive text-dark',
+        'rar': 'fas fa-file-archive text-dark',
+        '7z': 'fas fa-file-archive text-dark',
+        'mp4': 'fas fa-file-video text-purple',
+        'avi': 'fas fa-file-video text-purple',
+        'mov': 'fas fa-file-video text-purple',
+        'mp3': 'fas fa-file-audio text-info',
+        'wav': 'fas fa-file-audio text-info'
+    };
+    
+    return iconMap[extension] || 'fas fa-file text-muted';
+}
+
+// Function to download a single attachment
+async function downloadAttachment(claimId, fileName) {
+    try {
+        showLoadingSpinner('Downloading attachment...');
+        
+        // Method 1: Try to use Azure Storage SDK directly (if available)
+        if (typeof Azure !== 'undefined' && Azure.Storage) {
+            try {
+                const blobService = Azure.Storage.Blob.createBlobServiceWithSas(
+                    'https://instest01b7e2.blob.core.windows.net',
+                    generateSasToken(claimId, fileName) // You'd implement this
+                );
+                
+                // Download blob
+                blobService.getBlobToText('fnol-data', `${claimId}/${fileName}`, (error, text) => {
+                    if (!error) {
+                        // Create download
+                        const blob = new Blob([text], { type: 'application/octet-stream' });
+                        const downloadUrl = window.URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = downloadUrl;
+                        link.download = fileName;
+                        
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        
+                        window.URL.revokeObjectURL(downloadUrl);
+                        hideLoadingSpinner();
+                        showNotification('Attachment downloaded successfully!', 'success');
+                        return;
+                    }
+                });
+            } catch (sdkError) {
+                console.warn('Azure SDK method failed:', sdkError);
+            }
+        }
+        
+        // Method 2: Simple direct download approach
+        const blobUrl = `https://instest01b7e2.blob.core.windows.net/fnol-data/${claimId}/${fileName}`;
+        
+        // Create a hidden iframe to trigger download
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.src = blobUrl;
+        document.body.appendChild(iframe);
+        
+        // Remove iframe after a delay
+        setTimeout(() => {
+            if (iframe.parentNode) {
+                document.body.removeChild(iframe);
+            }
+        }, 5000);
+        
+        hideLoadingSpinner();
+        showNotification('Download started. If it doesn\'t work, try the alternative method below.', 'info');
+        
+    } catch (error) {
+        console.error('Error downloading attachment:', error);
+        hideLoadingSpinner();
+        
+        // Fallback: Show download instructions
+        showDownloadInstructions(claimId, fileName);
+    }
+}
+
+// Fallback function to show manual download instructions
+function showDownloadInstructions(claimId, fileName) {
+    const blobUrl = `https://instest01b7e2.blob.core.windows.net/fnol-data/${claimId}/${fileName}`;
+    
+    const modal = document.createElement('div');
+    modal.className = 'modal fade';
+    modal.innerHTML = `
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Download Attachment</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>To download <strong>${fileName}</strong>, please:</p>
+                    <ol>
+                        <li>Click the button below to open the file</li>
+                        <li>Right-click on the file and select "Save As..."</li>
+                        <li>Choose your download location</li>
+                    </ol>
+                    <div class="text-center mt-3">
+                        <a href="${blobUrl}" target="_blank" class="btn btn-primary">
+                            <i class="fas fa-external-link-alt me-2"></i>Open File
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    const bootstrapModal = new bootstrap.Modal(modal);
+    bootstrapModal.show();
+    
+    modal.addEventListener('hidden.bs.modal', () => {
+        modal.remove();
+    });
+}
+
+// Function to preview an attachment
+async function previewAttachment(claimId, fileName) {
+    try {
+        const fileExtension = fileName.split('.').pop()?.toLowerCase();
+        
+        // Check if file can be previewed
+        const previewableTypes = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'pdf', 'txt'];
+        
+        if (!previewableTypes.includes(fileExtension)) {
+            showNotification('This file type cannot be previewed. Please download to view.', 'info');
+            return;
+        }
+        
+        showLoadingSpinner('Loading preview...');
+        
+        // Direct blob URL for preview
+        const previewUrl = `https://instest01b7e2.blob.core.windows.net/fnol-data/${claimId}/${fileName}`;
+        
+        // Open preview modal
+        openPreviewModal(fileName, previewUrl, fileExtension);
+        
+        hideLoadingSpinner();
+        
+    } catch (error) {
+        console.error('Error previewing attachment:', error);
+        hideLoadingSpinner();
+        showNotification('Failed to preview attachment. Please try again.', 'error');
+    }
+}
+
+// Function to download all attachments
+async function downloadAllAttachments(claimId, fileNames) {
+    try {
+        showLoadingSpinner('Preparing downloads...');
+        
+        // Simple approach: open each file in a new tab with a delay
+        let openedCount = 0;
+        
+        for (let i = 0; i < fileNames.length; i++) {
+            const fileName = fileNames[i];
+            
+            setTimeout(() => {
+                const blobUrl = `https://instest01b7e2.blob.core.windows.net/fnol-data/${claimId}/${fileName}`;
+                window.open(blobUrl, '_blank');
+                openedCount++;
+                
+                if (openedCount === fileNames.length) {
+                    hideLoadingSpinner();
+                    showNotification(`Opened ${openedCount} files in new tabs. Right-click and save each file.`, 'info');
+                }
+            }, i * 1000); // 1 second delay between each file
+        }
+        
+        if (fileNames.length === 0) {
+            hideLoadingSpinner();
+            showNotification('No attachments to download.', 'warning');
+        }
+        
+    } catch (error) {
+        console.error('Error downloading all attachments:', error);
+        hideLoadingSpinner();
+        showNotification('Failed to open attachments. Please try individual downloads.', 'error');
+    }
+}
+
+// Function to open preview modal
+function openPreviewModal(fileName, previewUrl, fileExtension) {
+    // Create modal HTML
+    const modalHtml = `
+        <div class="modal fade" id="attachmentPreviewModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="fas fa-eye me-2"></i>Preview: ${fileName}
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        ${getPreviewContent(previewUrl, fileExtension)}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <a href="${previewUrl}" target="_blank" class="btn btn-primary">
+                            <i class="fas fa-external-link-alt me-2"></i>Open in New Tab
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Remove existing modal if any
+    const existingModal = document.getElementById('attachmentPreviewModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // Add modal to page
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('attachmentPreviewModal'));
+    modal.show();
+    
+    // Clean up when modal is closed
+    document.getElementById('attachmentPreviewModal').addEventListener('hidden.bs.modal', () => {
+        document.getElementById('attachmentPreviewModal').remove();
+    });
+}
+
+// Function to get preview content based on file type
+function getPreviewContent(previewUrl, fileExtension) {
+    if (['jpg', 'jpeg', 'png', 'gif', 'bmp'].includes(fileExtension)) {
+        return `<img src="${previewUrl}" class="img-fluid" style="max-height: 70vh;" alt="Preview" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                <div style="display: none;" class="text-muted">Failed to load image preview</div>`;
+    } else if (fileExtension === 'pdf') {
+        return `<iframe src="${previewUrl}" width="100%" height="600px" style="border: none;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"></iframe>
+                <div style="display: none;" class="text-muted">Failed to load PDF preview. <a href="${previewUrl}" target="_blank">Click here to open in new tab</a></div>`;
+    } else if (fileExtension === 'txt') {
+        return `<iframe src="${previewUrl}" width="100%" height="400px" style="border: 1px solid #ddd; border-radius: 4px;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"></iframe>
+                <div style="display: none;" class="text-muted">Failed to load text preview. <a href="${previewUrl}" target="_blank">Click here to open in new tab</a></div>`;
+    } else {
+        return `<p class="text-muted">Preview not available for this file type. <a href="${previewUrl}" target="_blank">Click here to open in new tab</a></p>`;
+    }
+}
+
+// Utility functions for loading spinner and notifications
+function showLoadingSpinner(message = 'Loading...') {
+    // Create or show loading spinner
+    let spinner = document.getElementById('loadingSpinner');
+    if (!spinner) {
+        spinner = document.createElement('div');
+        spinner.id = 'loadingSpinner';
+        spinner.className = 'loading-spinner';
+        spinner.innerHTML = `
+            <div class="spinner-backdrop" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; display: flex; align-items: center; justify-content: center;">
+                <div class="spinner-content" style="background: white; padding: 2rem; border-radius: 8px; text-align: center;">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <div class="mt-2">${message}</div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(spinner);
+    } else {
+        spinner.querySelector('.mt-2').textContent = message;
+        spinner.style.display = 'block';
+    }
+}
+
+function hideLoadingSpinner() {
+    const spinner = document.getElementById('loadingSpinner');
+    if (spinner) {
+        spinner.style.display = 'none';
+    }
+}
+
+function showNotification(message, type = 'info') {
+    // Create notification
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show position-fixed`;
+    notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    notification.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Auto-hide after 5 seconds
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.remove();
+        }
+    }, 5000);
 }
 
 // Add function to navigate to parent mail
