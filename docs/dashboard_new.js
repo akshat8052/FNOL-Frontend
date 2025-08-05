@@ -13,7 +13,8 @@ const API_URLS = {
     fnolMails: 'http://127.0.0.1:8000/FNOL_mails',
     nonFnolMails: 'http://127.0.0.1:8000/non_FNOL_mails',
     tracing: 'http://127.0.0.1:8000/tracing',
-    followupMails: 'http://127.0.0.1:8000/followup_mails'
+    followupMails: 'http://127.0.0.1:8000/followup_mails',
+    download: 'http://127.0.0.1:8000/download'
 };
 
 // Data storage
@@ -95,10 +96,16 @@ async function fetchFnolMails() {
                 id: `fnol-${i}`,
                 status: i % 2 === 0 ? 'processed' : 'unprocessed',
                 date: new Date(2025, 6, i + 15).toISOString(),
+                claim_id: `08DDAE4F0755F42${i}`, // Add claim ID for testing
                 extracted_data: {
                     email_id: `test${i}@example.com`,
                     subject: `Test FNOL Email ${i}`,
                     body_text: `This is a test email body for FNOL report ${i}. It contains incident details.`,
+                    attachment_path: i <= 2 ? [  // Add attachments for first 2 emails
+                        `attachments\\test_document_${i}.pdf`,
+                        `attachments\\incident_photo_${i}.jpg`,
+                        `attachments\\police_report_${i}.docx`
+                    ] : [], // No attachments for others
                     extracted_data: {
                         policy_number: `PAUTO4Q2025-${i}`,
                         InputLossDate: `July ${15 + i}, 2025`
@@ -928,6 +935,292 @@ function showMailDetails(mailId) {
         mailTypeTitle = 'Follow-up Mail';
     }
     document.getElementById('mail-detail-title').textContent = `Mail Details - ${mailTypeTitle}`;
+    
+    // Display attachments if available
+    displayAttachments(mailData);
+}
+
+// Function to display attachments
+function displayAttachments(mailData) {
+    const attachmentContainer = document.getElementById('mail-attachments-container');
+    if (!attachmentContainer) return;
+    
+    // Check if this mail has a claim ID and attachments
+    const hasClaimId = mailData.claim_id && mailData.claim_id.trim() !== '';
+    const attachmentPaths = mailData.extracted_data?.attachment_path || [];
+    
+    console.log("Mail Data for attachments:", mailData);
+    console.log("Claim ID:", mailData.claim_id);
+    console.log("Attachment Paths:", attachmentPaths);
+    
+    // Only show attachments if there's a claim ID and attachment paths
+    if (!hasClaimId || !attachmentPaths || attachmentPaths.length === 0) {
+        attachmentContainer.classList.add('d-none');
+        return;
+    }
+    
+    // Clear existing attachments
+    const attachmentList = document.getElementById('mail-attachments-list');
+    attachmentList.innerHTML = '';
+    
+    // Create attachment items
+    attachmentPaths.forEach((attachmentPath, index) => {
+        // Extract filename from path
+        const filename = attachmentPath.split('\\').pop() || attachmentPath.split('/').pop() || attachmentPath;
+        
+        // Determine file type and icon
+        const fileExtension = filename.split('.').pop().toLowerCase();
+        let fileIcon = 'fas fa-file';
+        let fileTypeClass = 'text-secondary';
+        
+        switch (fileExtension) {
+            case 'pdf':
+                fileIcon = 'fas fa-file-pdf';
+                fileTypeClass = 'text-danger';
+                break;
+            case 'doc':
+            case 'docx':
+                fileIcon = 'fas fa-file-word';
+                fileTypeClass = 'text-primary';
+                break;
+            case 'jpg':
+            case 'jpeg':
+            case 'png':
+            case 'gif':
+            case 'bmp':
+                fileIcon = 'fas fa-file-image';
+                fileTypeClass = 'text-success';
+                break;
+            case 'xls':
+            case 'xlsx':
+                fileIcon = 'fas fa-file-excel';
+                fileTypeClass = 'text-success';
+                break;
+            case 'txt':
+                fileIcon = 'fas fa-file-alt';
+                fileTypeClass = 'text-info';
+                break;
+            default:
+                fileIcon = 'fas fa-file';
+                fileTypeClass = 'text-secondary';
+        }
+        
+        // Create attachment item
+        const attachmentItem = document.createElement('div');
+        attachmentItem.className = 'attachment-item d-flex justify-content-between align-items-center p-3 mb-2 border rounded';
+        attachmentItem.style.cursor = 'pointer';
+        attachmentItem.style.transition = 'all 0.3s ease';
+        
+        attachmentItem.innerHTML = `
+            <div class="d-flex align-items-center">
+                <i class="${fileIcon} ${fileTypeClass} me-3" style="font-size: 1.5rem;"></i>
+                <div>
+                    <div class="fw-bold text-dark">${filename}</div>
+                    <small class="text-muted">${fileExtension.toUpperCase()} File</small>
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-primary btn-sm" onclick="previewAttachment('${mailData.claim_id}', '${filename}')" title="Preview">
+                    <i class="fas fa-eye"></i>
+                </button>
+                <button class="btn btn-primary btn-sm" onclick="downloadAttachment('${mailData.claim_id}', '${filename}', event)" title="Download">
+                    <i class="fas fa-download"></i>
+                </button>
+            </div>
+        `;
+        
+        // Add hover effects
+        attachmentItem.addEventListener('mouseenter', function() {
+            this.style.backgroundColor = '#f8f9fa';
+            this.style.boxShadow = '0 2px 5px rgba(0,0,0,0.1)';
+        });
+        
+        attachmentItem.addEventListener('mouseleave', function() {
+            this.style.backgroundColor = 'transparent';
+            this.style.boxShadow = 'none';
+        });
+        
+        attachmentList.appendChild(attachmentItem);
+    });
+    
+    // Show the attachments container
+    attachmentContainer.classList.remove('d-none');
+}
+
+// Function to download attachment
+async function downloadAttachment(claimId, filename, event) {
+    try {
+        // Show loading indicator
+        const downloadBtn = event ? event.target.closest('button') : null;
+        let originalContent = '';
+        if (downloadBtn) {
+            originalContent = downloadBtn.innerHTML;
+            downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            downloadBtn.disabled = true;
+        }
+        
+        // Construct the download URL
+        const container = 'fnol-data'; // Fixed container name
+        const folder = `${claimId}/attachments`; // Folder structure: claim_id/attachments
+        const downloadUrl = `${API_URLS.download}?container=${encodeURIComponent(container)}&folder=${encodeURIComponent(folder)}&filename=${encodeURIComponent(filename)}`;
+        
+        console.log("Downloading from URL:", downloadUrl);
+        
+        // Create a temporary link to trigger download
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = filename;
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Show success message
+        showNotification(`Successfully downloaded ${filename}`, 'success');
+        
+    } catch (error) {
+        console.error('Error downloading attachment:', error);
+        showNotification(`Failed to download ${filename}`, 'error');
+    } finally {
+        // Restore button state
+        if (event) {
+            const downloadBtn = event.target.closest('button');
+            if (downloadBtn) {
+                downloadBtn.innerHTML = '<i class="fas fa-download"></i>';
+                downloadBtn.disabled = false;
+            }
+        }
+    }
+}
+
+// Function to preview attachment (for images and PDFs)
+async function previewAttachment(claimId, filename) {
+    try {
+        const fileExtension = filename.split('.').pop().toLowerCase();
+        const container = 'fnol-data'; // Fixed container name
+        const folder = `${claimId}/attachments`; // Folder structure: claim_id/attachments
+        const previewUrl = `${API_URLS.download}?container=${encodeURIComponent(container)}&folder=${encodeURIComponent(folder)}&filename=${encodeURIComponent(filename)}`;
+        
+        console.log("Previewing from URL:", previewUrl);
+        
+        // For images, show in modal
+        if (['jpg', 'jpeg', 'png', 'gif', 'bmp'].includes(fileExtension)) {
+            showImagePreviewModal(previewUrl, filename, claimId);
+        } 
+        // For PDFs and documents, open in new tab
+        else {
+            window.open(previewUrl, '_blank');
+        }
+        
+    } catch (error) {
+        console.error('Error previewing attachment:', error);
+        showNotification(`Failed to preview ${filename}`, 'error');
+    }
+}
+
+// Function to show image preview modal
+function showImagePreviewModal(imageUrl, filename, claimId = null) {
+    // Create modal if it doesn't exist
+    let modal = document.getElementById('attachment-preview-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'attachment-preview-modal';
+        modal.className = 'modal fade';
+        modal.innerHTML = `
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Attachment Preview</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <img id="preview-image" src="" alt="Attachment Preview" class="img-fluid" style="max-height: 70vh;">
+                        <div id="preview-loading" class="d-none">
+                            <i class="fas fa-spinner fa-spin fa-3x"></i>
+                            <p class="mt-2">Loading preview...</p>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <span id="preview-filename" class="me-auto"></span>
+                        <button type="button" id="modal-download-btn" class="btn btn-primary">
+                            <i class="fas fa-download me-2"></i>Download
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+    
+    // Update modal content
+    const previewImage = document.getElementById('preview-image');
+    const previewLoading = document.getElementById('preview-loading');
+    const previewFilename = document.getElementById('preview-filename');
+    const downloadBtn = document.getElementById('modal-download-btn');
+    
+    previewLoading.classList.remove('d-none');
+    previewImage.style.display = 'none';
+    previewFilename.textContent = filename;
+    
+    // Update download button onclick handler
+    if (claimId) {
+        downloadBtn.onclick = function(event) {
+            downloadAttachment(claimId, filename, event);
+        };
+    } else {
+        downloadBtn.style.display = 'none';
+    }
+    
+    // Load image
+    previewImage.onload = function() {
+        previewLoading.classList.add('d-none');
+        previewImage.style.display = 'block';
+    };
+    
+    previewImage.onerror = function() {
+        previewLoading.classList.add('d-none');
+        previewImage.style.display = 'none';
+        showNotification('Failed to load image preview', 'error');
+    };
+    
+    previewImage.src = imageUrl;
+    
+    // Show modal
+    const bsModal = new bootstrap.Modal(modal);
+    bsModal.show();
+}
+
+// Function to show notifications
+function showNotification(message, type = 'info') {
+    // Create notification container if it doesn't exist
+    let notificationContainer = document.getElementById('notification-container');
+    if (!notificationContainer) {
+        notificationContainer = document.createElement('div');
+        notificationContainer.id = 'notification-container';
+        notificationContainer.style.position = 'fixed';
+        notificationContainer.style.top = '20px';
+        notificationContainer.style.right = '20px';
+        notificationContainer.style.zIndex = '9999';
+        document.body.appendChild(notificationContainer);
+    }
+    
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type === 'error' ? 'danger' : type === 'success' ? 'success' : 'info'} alert-dismissible fade show`;
+    notification.style.minWidth = '300px';
+    notification.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    notificationContainer.appendChild(notification);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.remove();
+        }
+    }, 5000);
 }
 
 // Function to display extracted data

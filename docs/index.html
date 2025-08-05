@@ -41,7 +41,7 @@
     <style>
         /* Set dashboard zoom to 80% */
         body {
-            zoom: 0.8;
+            zoom: 0.9;
             -moz-transform: scale(0.8);
             -moz-transform-origin: 0 0;
             -webkit-transform: scale(0.8);
@@ -232,6 +232,12 @@
                                         </div>
                                         <div class="mb-3" id="mail-additional-info">
                                             <!-- Additional info like parent mail ID will be displayed here -->
+                                        </div>
+                                        <div class="mb-3 d-none" id="mail-attachments-container">
+                                            <strong><i class="fas fa-paperclip me-2"></i>Attachments:</strong>
+                                            <div id="mail-attachments-list" class="mt-2">
+                                                <!-- Attachment items will be displayed here -->
+                                            </div>
                                         </div>
                                         <div class="mb-3 d-none" id="mail-summary-points-container">
                                             <strong>Summary Points:</strong>

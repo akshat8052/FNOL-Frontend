@@ -2185,3 +2185,97 @@ body.dark-mode .claim-id-container .badge {
 body.dark-mode .claim-id-container .badge:hover {
     background: linear-gradient(135deg, #20c997, #17a2b8) !important;
 }
+
+/* Attachment Styles */
+.attachment-item {
+    transition: all 0.3s ease;
+    border: 1px solid #e9ecef !important;
+    background: #ffffff;
+}
+
+.attachment-item:hover {
+    background-color: #f8f9fa !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+    border-color: #007bff !important;
+}
+
+.attachment-item .btn {
+    transition: all 0.2s ease;
+}
+
+.attachment-item .btn:hover {
+    transform: scale(1.05);
+}
+
+#mail-attachments-container {
+    margin-bottom: 1.5rem;
+}
+
+#mail-attachments-list {
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 0.5rem 0;
+}
+
+/* Dark mode attachment styles */
+body.dark-mode .attachment-item {
+    background: #2d3748;
+    border-color: #4a5568 !important;
+    color: #e2e8f0;
+}
+
+body.dark-mode .attachment-item:hover {
+    background-color: #374151 !important;
+    border-color: #63b3ed !important;
+}
+
+body.dark-mode .attachment-item .text-dark {
+    color: #e2e8f0 !important;
+}
+
+body.dark-mode .attachment-item .text-muted {
+    color: #a0aec0 !important;
+}
+
+/* Modal styles for attachment preview */
+#attachment-preview-modal .modal-content {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+}
+
+#attachment-preview-modal .modal-header {
+    border-bottom: 1px solid #e9ecef;
+    padding: 1.5rem;
+}
+
+#attachment-preview-modal .modal-body {
+    padding: 2rem;
+}
+
+#attachment-preview-modal .modal-footer {
+    border-top: 1px solid #e9ecef;
+    padding: 1.5rem;
+}
+
+body.dark-mode #attachment-preview-modal .modal-content {
+    background: #2d3748;
+    color: #e2e8f0;
+}
+
+body.dark-mode #attachment-preview-modal .modal-header,
+body.dark-mode #attachment-preview-modal .modal-footer {
+    border-color: #4a5568;
+}
+
+/* Notification container styles */
+#notification-container {
+    max-width: 400px;
+}
+
+#notification-container .alert {
+    margin-bottom: 10px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
