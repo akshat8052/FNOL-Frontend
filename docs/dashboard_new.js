@@ -399,6 +399,19 @@ function selectCard(cardType) {
         mailListTitle.textContent = 'Follow-up Mails';
     }
     
+    // Show/hide mail status filter based on mail type
+    const mailStatusFilter = document.getElementById('mail-status-filter');
+    if (cardType === 'fnol') {
+        // Show radio buttons only for FNOL mails
+        mailStatusFilter.style.display = 'block';
+    } else {
+        // Hide radio buttons for follow-up and non-FNOL mails
+        mailStatusFilter.style.display = 'none';
+        // Reset filter to 'all' when switching to non-FNOL or follow-up
+        currentFilterStatus = 'all';
+        document.getElementById('allMailsRadio').checked = true;
+    }
+    
     // Update status counts
     updateStatusCounts();
     
@@ -427,10 +440,10 @@ function sortMails(mails, sortOption) {
     
     switch (sortOption) {
         case 'date-desc':
-            sortedMails.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+            sortedMails.sort((a, b) => new Date(a.date || 0) - new Date(b.date || 0));
             break;
         case 'date-asc':
-            sortedMails.sort((a, b) => new Date(a.date || 0) - new Date(b.date || 0));
+            sortedMails.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
             break;
         case 'subject-asc':
             sortedMails.sort((a, b) => {

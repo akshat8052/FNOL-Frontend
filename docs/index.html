@@ -97,7 +97,7 @@
                         <div class="card dashboard-card active" id="fnol-card" onclick="selectCard('fnol')">
                             <div class="card-body">
                                 <h5 class="card-title"><i class="fas fa-envelope-open-text me-2"></i>FNOL Mails</h5>
-                                <p class="card-text"><span class="badge bg-primary" id="fnol-count">0</span> emails received</p>
+                                <p class="card-text"><span class="badge bg-primary" id="fnol-count">0</span> Emails Received</p>
                             </div>
                         </div>
                     </div>
@@ -105,7 +105,7 @@
                         <div class="card dashboard-card" id="claims-card" onclick="selectCard('claims')">
                             <div class="card-body">
                                 <h5 class="card-title"><i class="fas fa-file-alt me-2"></i>Follow-up mails</h5>
-                                <p class="card-text"><span class="badge bg-success" id="claims-count">0</span> Follow-up mails sent</p>
+                                <p class="card-text"><span class="badge bg-success" id="claims-count">0</span> Follow-up Mails Sent</p>
                             </div>
                         </div>
                     </div>
@@ -113,7 +113,7 @@
                         <div class="card dashboard-card" id="non-fnol-card" onclick="selectCard('non-fnol')">
                             <div class="card-body">
                                 <h5 class="card-title"><i class="fas fa-envelope me-2"></i>Non-FNOL Mails</h5>
-                                <p class="card-text"><span class="badge bg-secondary" id="non-fnol-count">0</span> emails received</p>
+                                <p class="card-text"><span class="badge bg-secondary" id="non-fnol-count">0</span> Emails Received</p>
                             </div>
                         </div>
                     </div>
@@ -132,7 +132,7 @@
                             </div>
                             <div class="card-body p-2">
                                 <!-- Mail Status Filter -->
-                                <div class="mail-filter pb-2 mb-2 border-bottom">
+                                <div class="mail-filter pb-2 mb-2 border-bottom" id="mail-status-filter">
                                     <div class="form-check form-check-inline">
                                         <input class="form-check-input" type="radio" name="mailStatus" id="allMailsRadio" value="all" checked onclick="filterMailsByStatus('all')">
                                         <label class="form-check-label" for="allMailsRadio">
@@ -295,6 +295,16 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <div class="col-md-3 mb-3" data-aos="zoom-in" data-aos-delay="300">
+                                        <div class="stats-card bg-info text-white">
+                                            <div class="stats-icon"><i class="fas fa-reply"></i></div>
+                                            <div class="stats-info">
+                                                <h3 id="analytics-followups" class="counter">0</h3>
+                                                <p>Follow-up Emails</p>
+                                            </div>
+                                        </div>
+                                    
+                                    </div>
                                     <div class="col-md-3 mb-3" data-aos="zoom-in" data-aos-delay="200">
                                         <div class="stats-card bg-warning text-dark">
                                             <div class="stats-icon"><i class="fas fa-exclamation-triangle"></i></div>
@@ -304,15 +314,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-3 mb-3" data-aos="zoom-in" data-aos-delay="300">
-                                        <div class="stats-card bg-info text-white">
-                                            <div class="stats-icon"><i class="fas fa-reply"></i></div>
-                                            <div class="stats-info">
-                                                <h3 id="analytics-followups" class="counter">0</h3>
-                                                <p>Follow-up Emails</p>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    
                                     <div class="col-md-3 mb-3" data-aos="zoom-in" data-aos-delay="400">
                                         <div class="stats-card bg-success text-white">
                                             <div class="stats-icon"><i class="fas fa-file-alt"></i></div>
