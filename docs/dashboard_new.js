@@ -34,6 +34,10 @@ let statsData = {
 // Initialize dashboard when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Dashboard initializing...');
+    
+    // Show loading state immediately
+    showLoading(true);
+    
     // Initialize AOS animations
     AOS.init({
         duration: 800,
@@ -43,14 +47,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // Apply theme based on saved preference
     updateTheme();
     
-    // Fetch data from APIs
-    loadAllData();
-    
     // Setup event listeners
     setupEventListeners();
     
     // Initialize charts
     initCharts();
+    
+    // Fetch data from APIs
+    loadAllData();
 });
 
 // Function to load all data
@@ -58,22 +62,30 @@ async function loadAllData() {
     // Show loading indicators
     showLoading(true);
     
-    // Fetch data from APIs in parallel
-    await Promise.all([
-        fetchFnolMails(),
-        fetchNonFnolMails(),
-        fetchFollowupMails(),
-        fetchTracingStats()
-    ]);
-    
-    // Calculate statistics
-    calculateStats();
-    
-    // Initial display of mail list
-    loadMailList();
-    
-    // Hide loading indicators
-    showLoading(false);
+    try {
+        // Fetch data from APIs in parallel
+        await Promise.all([
+            fetchFnolMails(),
+            fetchNonFnolMails(),
+            fetchFollowupMails(),
+            fetchTracingStats()
+        ]);
+        
+        // Calculate statistics
+        calculateStats();
+        
+        // Hide loading indicators
+        showLoading(false);
+        
+        // Load mail list after data is fetched
+        loadMailList();
+        
+        console.log('All data loaded successfully');
+    } catch (error) {
+        console.error('Error loading data:', error);
+        showLoading(false);
+        loadMailList(); // Still load the mail list even if there's an error
+    }
 }
 
 // Fetch data from APIs
@@ -86,6 +98,12 @@ async function fetchFnolMails() {
         const data = await response.json();
         fnolMailsData = data;
         updateMailCounts();
+        
+        // Refresh mail list if currently viewing FNOL mails
+        if (currentMailType === 'fnol') {
+            loadMailList();
+        }
+        
         return data;
     } catch (error) {
         console.error('Error fetching FNOL mails:', error);
@@ -144,6 +162,12 @@ async function fetchNonFnolMails() {
         const data = await response.json();
         nonFnolMailsData = data;
         updateMailCounts();
+        
+        // Refresh mail list if currently viewing non-FNOL mails
+        if (currentMailType === 'non-fnol') {
+            loadMailList();
+        }
+        
         return data;
     } catch (error) {
         console.error('Error fetching non-FNOL mails:', error);
@@ -160,6 +184,12 @@ async function fetchFollowupMails() {
         const data = await response.json();
         followupMailsData = data;
         updateMailCounts();
+        
+        // Refresh mail list if currently viewing follow-up mails
+        if (currentMailType === 'claims') {
+            loadMailList();
+        }
+        
         return data;
     } catch (error) {
         console.error('Error fetching follow-up mails:', error);
@@ -333,14 +363,25 @@ function updateStatusCounts() {
 
 // Function to show/hide loading indicators
 function showLoading(isLoading) {
-    const loaderElements = document.querySelectorAll('.mail-list-loader');
-    loaderElements.forEach(loader => {
-        if (isLoading) {
-            loader.classList.remove('d-none');
-        } else {
-            loader.classList.add('d-none');
+    const mailListElement = document.getElementById('mail-list');
+    
+    if (isLoading) {
+        // Remove any existing content and show loader
+        mailListElement.innerHTML = `
+            <div class="mail-list-loader text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2 text-muted">Loading mails...</p>
+            </div>
+        `;
+    } else {
+        // Remove loader if it exists
+        const loader = mailListElement.querySelector('.mail-list-loader');
+        if (loader) {
+            loader.remove();
         }
-    });
+    }
 }
 
 // Function to setup event listeners
@@ -474,6 +515,14 @@ function sortMails(mails, sortOption) {
 // Function to load mail list based on current selections
 function loadMailList() {
     const mailListElement = document.getElementById('mail-list');
+    
+    // Remove any existing loader
+    const existingLoader = mailListElement.querySelector('.mail-list-loader');
+    if (existingLoader) {
+        existingLoader.remove();
+    }
+    
+    // Clear the mail list content
     mailListElement.innerHTML = '';
     
     let mailsToDisplay = [];
