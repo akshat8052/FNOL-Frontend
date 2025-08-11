@@ -113,12 +113,12 @@ async function fetchFnolMails() {
             const mail = {
                 id: `fnol-${i}`,
                 status: i % 2 === 0 ? 'processed' : 'unprocessed',
-                date: new Date(2025, 6, i + 15).toISOString(),
                 claim_id: `08DDAE4F0755F42${i}`, // Add claim ID for testing
                 extracted_data: {
                     email_id: `test${i}@example.com`,
                     subject: `Test FNOL Email ${i}`,
                     body_text: `This is a test email body for FNOL report ${i}. It contains incident details.`,
+                    sent_time: new Date(2025, 6, i + 15).toISOString(),
                     attachment_path: i <= 2 ? [  // Add attachments for first 2 emails
                         `attachments\\test_document_${i}.pdf`,
                         `attachments\\incident_photo_${i}.jpg`,
@@ -482,10 +482,38 @@ function sortMails(mails, sortOption) {
     
     switch (sortOption) {
         case 'date-desc':
-            sortedMails.sort((a, b) => new Date(a.date || 0) - new Date(b.date || 0));
+            sortedMails.sort((a, b) => {
+                // Get the appropriate date field based on current mail type
+                let dateA, dateB;
+                if (currentMailType === 'fnol') {
+                    dateA = a.extracted_data?.sent_time || 0;
+                    dateB = b.extracted_data?.sent_time || 0;
+                } else if (currentMailType === 'claims') {
+                    dateA = a.extracted_data?.sent_time || a.date || 0;
+                    dateB = b.extracted_data?.sent_time || b.date || 0;
+                } else {
+                    dateA = a.date || 0;
+                    dateB = b.date || 0;
+                }
+                return new Date(dateB) - new Date(dateA);
+            });
             break;
         case 'date-asc':
-            sortedMails.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+            sortedMails.sort((a, b) => {
+                // Get the appropriate date field based on current mail type
+                let dateA, dateB;
+                if (currentMailType === 'fnol') {
+                    dateA = a.extracted_data?.sent_time || 0;
+                    dateB = b.extracted_data?.sent_time || 0;
+                } else if (currentMailType === 'claims') {
+                    dateA = a.extracted_data?.sent_time || a.date || 0;
+                    dateB = b.extracted_data?.sent_time || b.date || 0;
+                } else {
+                    dateA = a.date || 0;
+                    dateB = b.date || 0;
+                }
+                return new Date(dateA) - new Date(dateB);
+            });
             break;
         case 'subject-asc':
             sortedMails.sort((a, b) => {
@@ -594,15 +622,34 @@ function loadMailList() {
             
             mailItem.onclick = () => showMailDetails(mail.id);
             
-            // Format date
-            const mailDate = mail.date !== 'Unknown' && mail.date ? new Date(mail.date) : new Date();
+            // Format date based on mail type
+            let mailDate;
+            if (currentMailType === 'fnol') {
+                // FNOL mails use sent_time field
+                mailDate = mail.extracted_data?.sent_time && mail.extracted_data?.sent_time !== 'Unknown' ? 
+                    new Date(mail.extracted_data.sent_time) : new Date();
+            } else if (currentMailType === 'claims') {
+                // Claims mails might have either sent_time or date, check both
+                const claimsDateValue = mail.extracted_data?.sent_time || mail.date;
+                mailDate = claimsDateValue && claimsDateValue !== 'Unknown' ? new Date(claimsDateValue) : new Date();
+            } else {
+                // Non-FNOL mails use date field
+                mailDate = mail.date && mail.date !== 'Unknown' ? new Date(mail.date) : new Date();
+            }
+
+            console.log("Processing mail item:", mail.id);
+            console.log("Mail type:", currentMailType);
+            console.log("Date field used:", currentMailType === 'fnol' ? 'extracted_data.sent_time' : currentMailType === 'claims' ? 'sent_time or date' : 'date');
+            console.log("Raw date value:", currentMailType === 'fnol' ? mail.extracted_data?.sent_time : currentMailType === 'claims' ? (mail.extracted_data?.sent_time || mail.date) : mail.date);
+            
             const formattedDate = mailDate.toLocaleDateString('en-US', { 
                 month: 'short', 
                 day: 'numeric', 
                 hour: '2-digit', 
                 minute: '2-digit' 
             });
-            
+            console.log("Formatted date:", formattedDate);
+            console.log("-----------------------------------------------")
             // Get appropriate subject and preview based on mail type
             let subject, preview, from;
             if (currentMailType === 'fnol') {
@@ -869,7 +916,7 @@ function showMailDetails(mailId) {
         // FNOL mail format
         document.getElementById('mail-from').textContent = mailData.extracted_data?.email_id || 'Unknown';
         document.getElementById('mail-subject').textContent = mailData.extracted_data?.subject || 'No subject';
-        document.getElementById('mail-date').textContent = formatDateTime(mailData.date);
+        document.getElementById('mail-date').textContent = formatDateTime(mailData.extracted_data?.sent_time);
         document.getElementById('mail-status').textContent = mailData.status || 'Unknown';
         document.getElementById('mail-policy').textContent = mailData.extracted_data?.extracted_data?.policy_number || 'Not found';
         document.getElementById('mail-incident-date').textContent = mailData.extracted_data?.extracted_data?.InputLossDate || 'Not specified';
@@ -897,10 +944,12 @@ function showMailDetails(mailId) {
         // Display extracted info
         displayExtractedData(mailData.extracted_data?.extracted_data || {});
     } else if (currentMailType === 'claims') {
-        // Follow-up mail format
+        // Follow-up mail format - check if it has sent_time or date field
         document.getElementById('mail-from').textContent = mailData.extracted_data?.email_id || 'Unknown';
         document.getElementById('mail-subject').textContent = mailData.extracted_data?.subject || 'No subject';
-        document.getElementById('mail-date').textContent = formatDateTime(mailData.date);
+        // Claims might have either sent_time or date, check both
+        const claimsDate = mailData.extracted_data?.sent_time || mailData.date;
+        document.getElementById('mail-date').textContent = formatDateTime(claimsDate);
         document.getElementById('mail-status').textContent = 'Follow-up';
         document.getElementById('mail-policy').textContent = mailData.extracted_data?.extracted_data?.policy_number || 'Not found';
         document.getElementById('mail-incident-date').textContent = mailData.extracted_data?.extracted_data?.InputLossDate || 'Not specified';
