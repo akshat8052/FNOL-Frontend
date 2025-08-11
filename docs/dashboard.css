@@ -1481,7 +1481,7 @@ body.dark-mode #mail-status[data-status="unprocessed"] {
 }
 
 /* Custom styling for mail info fields */
-#mail-from, #mail-subject, #mail-date, #mail-policy, #mail-incident-date {
+#mail-from, #mail-subject, #mail-date, #mail-policy, #mail-incident-date, #mail-claim-id {
     padding: 6px 10px;
     background-color: rgba(240, 247, 255, 0.5);
     border-radius: 8px;
@@ -1491,7 +1491,7 @@ body.dark-mode #mail-status[data-status="unprocessed"] {
     margin-top: 4px;
 }
 
-#mail-from:hover, #mail-subject:hover, #mail-date:hover, #mail-policy:hover, #mail-incident-date:hover {
+#mail-from:hover, #mail-subject:hover, #mail-date:hover, #mail-policy:hover, #mail-incident-date:hover, #mail-claim-id:hover {
     background-color: rgba(240, 247, 255, 0.8);
     box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
 }
@@ -1560,6 +1560,7 @@ body.dark-mode #mail-status[data-status="unprocessed"] {
 body.dark-mode #mail-from, 
 body.dark-mode #mail-subject, 
 body.dark-mode #mail-date, 
+body.dark-mode #mail-claim-id,
 body.dark-mode #mail-policy, 
 body.dark-mode #mail-incident-date {
     background-color: rgba(45, 55, 72, 0.3);
@@ -1571,6 +1572,7 @@ body.dark-mode #mail-from:hover,
 body.dark-mode #mail-subject:hover, 
 body.dark-mode #mail-date:hover, 
 body.dark-mode #mail-policy:hover, 
+body.dark-mode #mail-claim-id:hover,
 body.dark-mode #mail-incident-date:hover {
     background-color: rgba(45, 55, 72, 0.5);
 }
@@ -2064,7 +2066,7 @@ body.dark-mode .chart-container {
 }
 
 /* Enhanced Claim ID Container */
-.claim-id-container {
+.claim-number-container {
     background: rgba(243, 156, 18, 0.1);
     border-radius: 12px;
     padding: 12px 15px;
@@ -2074,7 +2076,7 @@ body.dark-mode .chart-container {
     transition: all 0.3s ease;
 }
 
-.claim-id-container::before {
+.claim-number-container::before {
     content: '';
     position: absolute;
     top: 0;
@@ -2086,23 +2088,23 @@ body.dark-mode .chart-container {
     pointer-events: none;
 }
 
-.claim-id-container:hover {
+.claim-number-container:hover {
     background: rgba(243, 156, 18, 0.15);
     transform: translateY(-2px);
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
 }
 
-body.dark-mode .claim-id-container {
+body.dark-mode .claim-number-container {
     background: rgba(243, 156, 18, 0.05);
     border-left: 4px solid #f39c12;
 }
 
-body.dark-mode .claim-id-container:hover {
+body.dark-mode .claim-number-container:hover {
     background: rgba(243, 156, 18, 0.1);
 }
 
 /* Claim ID Badge Styling */
-.claim-id-container .badge {
+.claim-number-container .badge {
     background: linear-gradient(135deg, #f39c12, #e67e22) !important;
     color: #fff !important;
     border: none;
@@ -2111,22 +2113,22 @@ body.dark-mode .claim-id-container:hover {
     transition: all 0.3s ease;
 }
 
-.claim-id-container .badge:hover {
+.claim-number-container .badge:hover {
     background: linear-gradient(135deg, #e67e22, #d35400) !important;
     transform: scale(1.02);
 }
 
-body.dark-mode .claim-id-container .badge {
+body.dark-mode .claim-number-container .badge {
     background: linear-gradient(135deg, #f39c12, #e67e22) !important;
 }
 
-body.dark-mode .claim-id-container .badge:hover {
+body.dark-mode .claim-number-container .badge:hover {
     background: linear-gradient(135deg, #e67e22, #d35400) !important;
 }
 
 
 /* Enhanced Claim ID Container */
-.claim-id-container {
+.claim-number-container {
     background: rgba(40, 167, 69, 0.1);
     border-radius: 12px;
     padding: 12px 15px;
@@ -2136,7 +2138,7 @@ body.dark-mode .claim-id-container .badge:hover {
     transition: all 0.3s ease;
 }
 
-.claim-id-container::before {
+.claim-number-container::before {
     content: '';
     position: absolute;
     top: 0;
@@ -2148,23 +2150,23 @@ body.dark-mode .claim-id-container .badge:hover {
     pointer-events: none;
 }
 
-.claim-id-container:hover {
+.claim-number-container:hover {
     background: rgba(40, 167, 69, 0.15);
     transform: translateY(-2px);
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
 }
 
-body.dark-mode .claim-id-container {
+body.dark-mode .claim-number-container {
     background: rgba(40, 167, 69, 0.05);
     border-left: 4px solid #28a745;
 }
 
-body.dark-mode .claim-id-container:hover {
+body.dark-mode .claim-number-container:hover {
     background: rgba(40, 167, 69, 0.1);
 }
 
 /* Claim ID Badge Styling */
-.claim-id-container .badge {
+.claim-number-container .badge {
     background: linear-gradient(135deg, #28a745, #20c997) !important;
     color: #fff !important;
     border: none;
@@ -2173,16 +2175,16 @@ body.dark-mode .claim-id-container:hover {
     transition: all 0.3s ease;
 }
 
-.claim-id-container .badge:hover {
+.claim-number-container .badge:hover {
     background: linear-gradient(135deg, #20c997, #17a2b8) !important;
     transform: scale(1.02);
 }
 
-body.dark-mode .claim-id-container .badge {
+body.dark-mode .claim-number-container .badge {
     background: linear-gradient(135deg, #28a745, #20c997) !important;
 }
 
-body.dark-mode .claim-id-container .badge:hover {
+body.dark-mode .claim-number-container .badge:hover {
     background: linear-gradient(135deg, #20c997, #17a2b8) !important;
 }
 

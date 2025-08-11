@@ -1912,7 +1912,7 @@ function calculateStats() {
 
 // Update the statistics display
 function updateStatsDisplay() {
-    document.getElementById('analytics-emails-received').textContent = statsData.emails_received;
+    document.getElementById('analytics-emails-received').textContent = statsData.fnol_emails_received;
     document.getElementById('analytics-incomplete').textContent = statsData.incomplete_info_emails;
     document.getElementById('analytics-followups').textContent = statsData.followup_emails_sent;
     document.getElementById('analytics-claims').textContent = statsData.claims_generated;

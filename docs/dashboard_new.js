@@ -22,8 +22,8 @@ let fnolMailsData = [];
 let nonFnolMailsData = [];
 let followupMailsData = [];
 let statsData = {
-    emails_received: 0,
-    incomplete_info_emails: 0,
+    fnol_emails_received: 0,
+    non_fnol_mails: 0,
     followup_emails_sent: 0,
     claims_generated: 0,
     daily_stats: {},
@@ -207,8 +207,8 @@ async function fetchTracingStats() {
         const data = await response.json();
         
         // Update stats data with API response
-        statsData.emails_received = data.emails_received;
-        statsData.incomplete_info_emails = data.incomplete_info_emails;
+        statsData.fnol_emails_received = data.fnol_emails_received;
+        statsData.non_fnol_mails = data.non_fnol_mails;
         statsData.followup_emails_sent = data.followup_emails_sent;
         statsData.claims_generated = data.claims_generated;
         statsData.daily_stats = data.daily_stats;
@@ -238,10 +238,10 @@ function enhanceStatsData() {
             const dayStats = statsData.daily_stats[date];
             
             // If we don't have non_fnol_emails data but have emails_received
-            if (dayStats.emails_received !== undefined && dayStats.non_fnol_emails === undefined) {
+            if (dayStats.fnol_emails_received !== undefined && dayStats.non_fnol_emails === undefined) {
                 // Estimate non-FNOL emails (could be inaccurate but better than nothing)
                 // On average, assuming non-FNOL emails are approximately 30% of total
-                dayStats.non_fnol_emails = Math.round(dayStats.emails_received * 0.3);
+                dayStats.non_fnol_emails = Math.round(dayStats.fnol_emails_received * 0.3);
             }
         });
     }
@@ -252,10 +252,11 @@ function calculateStats() {
     // If we haven't fetched the stats from the API yet, calculate basic stats from mail data
     if (!statsData.last_updated) {
         // Calculate total emails
-        statsData.emails_received = fnolMailsData.length + nonFnolMailsData.length;
+        statsData.fnol_emails_received = fnolMailsData.length + nonFnolMailsData.length;
         
-        // Calculate incomplete emails (new status)
-        statsData.incomplete_info_emails = fnolMailsData.filter(mail => mail.status === 'new').length;
+
+        // Calculate non-FNOL mails
+        statsData.non_fnol_mails = fnolMailsData.filter(mail => mail.status === 'new').length;
     }
     
     // Update the stats display
@@ -264,8 +265,8 @@ function calculateStats() {
 
 // Update the statistics display
 function updateStatsDisplay() {
-    document.getElementById('analytics-emails-received').textContent = statsData.emails_received;
-    document.getElementById('analytics-incomplete').textContent = statsData.incomplete_info_emails;
+    document.getElementById('analytics-fnol-emails-received').textContent = statsData.fnol_emails_received;
+    document.getElementById('analytics-non-fnol').textContent = statsData.non_fnol_mails;
     document.getElementById('analytics-followups').textContent = statsData.followup_emails_sent;
     document.getElementById('analytics-claims').textContent = statsData.claims_generated;
     
@@ -314,8 +315,8 @@ function updateDailyStatsTable() {
         
         row.innerHTML = `
             <td>${displayDate}</td>
-            <td>${dayStats.emails_received}</td>
-            <td>${dayStats.incomplete_info_emails}</td>
+            <td>${dayStats.fnol_emails_received}</td>
+            <td>${dayStats.non_fnol_mails}</td>
             <td>${dayStats.followup_emails_sent}</td>
             <td>${dayStats.claims_generated}</td>
         `;
@@ -873,6 +874,15 @@ function showMailDetails(mailId) {
         document.getElementById('mail-policy').textContent = mailData.extracted_data?.extracted_data?.policy_number || 'Not found';
         document.getElementById('mail-incident-date').textContent = mailData.extracted_data?.extracted_data?.InputLossDate || 'Not specified';
         document.getElementById('mail-description').textContent = mailData.extracted_data?.body_text || 'No description available';
+        if (mailData.claim_id) {
+            document.getElementById('mail-claim-id').parentElement.classList.remove('d-none');
+            document.getElementById('mail-claim-id').textContent = mailData.claim_id || 'Not available';
+        }
+        else {
+            document.getElementById('mail-claim-id').textContent = 'Not available';
+            document.getElementById('mail-claim-id').parentElement.classList.add('d-none');
+        }
+
         
         // Debug log to see mail data structure
         console.log("Mail Data Structure:", mailData);
@@ -937,12 +947,12 @@ function showMailDetails(mailId) {
         let additionalInfoHtml = '';
 
         // Display claim ID for FNOL mails if available
-        if (currentMailType === 'fnol' && mailData.claim_id) {
+        if (currentMailType === 'fnol' && mailData.claim_number) {
             additionalInfoHtml += `
-                <div class="mb-3 claim-id-container">
-                    <strong><i class="fas fa-file-invoice me-2"></i>Claim ID:</strong>
+                <div class="mb-3 claim-number-container">
+                    <strong><i class="fas fa-file-invoice me-2"></i>Claim Number:</strong>
                     <span class="badge" style="font-size: 1.05rem; padding: 0.6rem 0.85rem;">
-                        <i class="fas fa-star me-2"></i>${mailData.claim_id}
+                        <i class="fas fa-star me-2"></i>${mailData.claim_number}
                     </span>
                 </div>
             `;
@@ -1487,8 +1497,8 @@ function initCharts() {
     // Initialize the user mails pie chart
     updateUserMailsPieChart();
     
-    const emailsData = dates.map(date => statsData.daily_stats[date].emails_received);
-    const incompleteData = dates.map(date => statsData.daily_stats[date].incomplete_info_emails);
+    const fnolEmailsData = dates.map(date => statsData.daily_stats[date].fnol_emails_received);
+    const nonfnol = dates.map(date => statsData.daily_stats[date].non_fnol_mails);
     const followupData = dates.map(date => statsData.daily_stats[date].followup_emails_sent);
     const claimsData = dates.map(date => statsData.daily_stats[date].claims_generated);
     
@@ -1501,8 +1511,8 @@ function initCharts() {
                 labels: formattedDates.length > 0 ? formattedDates : ['No Data'],
                 datasets: [
                     {
-                        label: 'Emails Received',
-                        data: emailsData.length > 0 ? emailsData : [0],
+                        label: 'FNOL Emails Received',
+                        data: fnolEmailsData.length > 0 ? fnolEmailsData : [0],
                         borderColor: '#0d6efd',
                         backgroundColor: 'rgba(13, 110, 253, 0.1)',
                         borderWidth: 2,
@@ -1510,8 +1520,8 @@ function initCharts() {
                         fill: true
                     },
                     {
-                        label: 'Incomplete Info',
-                        data: incompleteData.length > 0 ? incompleteData : [0],
+                        label: 'Non-FNOL Emails',
+                        data: nonfnol.length > 0 ? nonfnol : [0],
                         borderColor: '#ffc107',
                         backgroundColor: 'rgba(255, 193, 7, 0.1)',
                         borderWidth: 2,
@@ -1586,7 +1596,7 @@ function initCharts() {
             const dayStats = statsData.daily_stats[date];
             
             // Calculate FNOL mails (total emails - non-fnol emails)
-            const fnolCount = dayStats.emails_received - (dayStats.non_fnol_emails || 0);
+            const fnolCount = dayStats.fnol_emails_received - (dayStats.non_fnol_emails || 0);
             fnolData.push(fnolCount);
             
             // Use available data or default to 0

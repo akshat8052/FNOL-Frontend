@@ -205,6 +205,10 @@
                                                     <strong>Received:</strong>
                                                     <span id="mail-date"></span>
                                                 </div>
+                                                <div class="mb-3">
+                                                    <strong>Claim ID:</strong>
+                                                    <span id="mail-claim-id"></span>
+                                                </div>
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="mb-3">
@@ -285,8 +289,8 @@
                                         <div class="stats-card bg-primary text-white">
                                             <div class="stats-icon"><i class="fas fa-envelope"></i></div>
                                             <div class="stats-info">
-                                                <h3 id="analytics-emails-received" class="counter">0</h3>
-                                                <p>Emails Received</p>
+                                                <h3 id="analytics-fnol-emails-received" class="counter">0</h3>
+                                                <p>FNOL Emails Received</p>
                                             </div>
                                         </div>
                                     </div>
@@ -295,7 +299,7 @@
                                             <div class="stats-icon"><i class="fas fa-reply"></i></div>
                                             <div class="stats-info">
                                                 <h3 id="analytics-followups" class="counter">0</h3>
-                                                <p>Follow-up Emails</p>
+                                                <p>Follow-up Emails Sent</p>
                                             </div>
                                         </div>
                                     
@@ -304,8 +308,8 @@
                                         <div class="stats-card bg-warning text-dark">
                                             <div class="stats-icon"><i class="fas fa-exclamation-triangle"></i></div>
                                             <div class="stats-info">
-                                                <h3 id="analytics-incomplete" class="counter">0</h3>
-                                                <p>Incomplete Info</p>
+                                                <h3 id="analytics-non-fnol" class="counter">0</h3>
+                                                <p>Non-FNOL Emails Received</p>
                                             </div>
                                         </div>
                                     </div>
@@ -354,8 +358,8 @@
                                             <thead>
                                                 <tr>
                                                     <th>Date</th>
-                                                    <th>Emails</th>
-                                                    <th>Incomplete</th>
+                                                    <th>FNOL Emails</th>
+                                                    <th>Non-FNOL</th>
                                                     <th>Follow-ups</th>
                                                     <th>Claims</th>
                                                 </tr>
