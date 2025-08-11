@@ -770,6 +770,30 @@ function clearMailDetails() {
     document.getElementById('mail-summary-points-container').classList.add('d-none');
 }
 
+// Function to render basic markdown text
+function renderMarkdown(text) {
+    if (!text) return '';
+    
+    // Convert markdown to HTML
+    let html = text
+        // Remove leading dash for list items
+        .replace(/^-\s*/, '')
+        // Bold text: **text** or __text__
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/__(.*?)__/g, '<strong>$1</strong>')
+        // Italic text: *text* or _text_
+        .replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, '<em>$1</em>')
+        .replace(/(?<!_)_([^_]+)_(?!_)/g, '<em>$1</em>')
+        // Code: `code`
+        .replace(/`([^`]+)`/g, '<code class="bg-light px-1 rounded">$1</code>')
+        // Links: [text](url)
+        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" class="text-decoration-none">$1 <i class="fas fa-external-link-alt ms-1" style="font-size: 0.8em;"></i></a>')
+        // Line breaks
+        .replace(/\n/g, '<br>');
+    
+    return html;
+}
+
 // Function to display summary points
 function displaySummaryPoints(summaryPoints) {
     const summaryPointsContainer = document.getElementById('mail-summary-points-container');
@@ -784,12 +808,16 @@ function displaySummaryPoints(summaryPoints) {
     if (summaryPoints && summaryPoints.length > 0) {
         console.log("Found summary points to display:", summaryPoints.length);
         
-        // Display each summary point as a list item
+        // Display each summary point as a list item with markdown rendering
         summaryPoints.forEach((point, index) => {
             console.log(`Adding point ${index}:`, point);
             const listItem = document.createElement('li');
             listItem.className = 'list-group-item';
-            listItem.textContent = point;
+            
+            // Render markdown content
+            const renderedContent = renderMarkdown(point);
+            listItem.innerHTML = renderedContent;
+            
             summaryPointsList.appendChild(listItem);
         });
         
