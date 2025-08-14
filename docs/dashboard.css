@@ -2281,3 +2281,115 @@ body.dark-mode #attachment-preview-modal .modal-footer {
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
+
+/* Risk Analysis Styles */
+.risk-analysis-section {
+    border: 1px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.risk-analysis-section:hover {
+    border-color: #3498db;
+    background-color: #f8f9fa !important;
+}
+
+.risk-analysis-section .badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    font-weight: 600;
+}
+
+.risk-analysis-section .badge.bg-success {
+    background-color: #28a745 !important;
+    color: white;
+}
+
+.risk-analysis-section .badge.bg-warning {
+    background-color: #ffc107 !important;
+    color: #212529;
+}
+
+.risk-analysis-section .badge.bg-danger {
+    background-color: #dc3545 !important;
+    color: white;
+}
+
+.risk-analysis-section .badge.bg-info {
+    background-color: #17a2b8 !important;
+    color: white;
+}
+
+.risk-analysis-section .badge.bg-secondary {
+    background-color: #6c757d !important;
+    color: white;
+}
+
+.risk-rationale {
+    line-height: 1.4;
+}
+
+/* Enhanced attachment item styles */
+.attachment-item {
+    background: #ffffff;
+    border: 1px solid #e9ecef !important;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.attachment-item:hover {
+    border-color: #3498db !important;
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.15) !important;
+}
+
+/* Dark mode risk analysis styles */
+body.dark-mode .risk-analysis-section {
+    background-color: #2d3748 !important;
+    border-color: #4a5568;
+    color: #e2e8f0;
+}
+
+body.dark-mode .risk-analysis-section:hover {
+    border-color: #63b3ed;
+    background-color: #2a2f3a !important;
+}
+
+body.dark-mode .attachment-item {
+    background-color: #2d3748;
+    border-color: #4a5568 !important;
+    color: #e2e8f0;
+}
+
+body.dark-mode .attachment-item:hover {
+    border-color: #63b3ed !important;
+    box-shadow: 0 4px 12px rgba(99, 179, 237, 0.15) !important;
+}
+
+body.dark-mode .risk-rationale {
+    color: #a0aec0;
+}
+
+/* Risk icon animations */
+.risk-analysis-section i.fas {
+    transition: transform 0.2s ease;
+}
+
+.risk-analysis-section:hover i.fas {
+    transform: scale(1.1);
+}
+
+/* Responsive adjustments for risk analysis */
+@media (max-width: 768px) {
+    .risk-analysis-section {
+        padding: 0.75rem !important;
+    }
+    
+    .risk-analysis-section .d-flex {
+        flex-direction: column;
+        align-items: flex-start !important;
+    }
+    
+    .risk-analysis-section .badge {
+        margin-top: 0.5rem;
+        margin-left: 0 !important;
+    }
+}

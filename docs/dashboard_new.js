@@ -1039,10 +1039,7 @@ function showMailDetails(mailId) {
         if (currentMailType === 'claims') {
             const parentId = mailData.parent_id || '';
             additionalInfoHtml += `
-                <div class="mb-3">
-                    <strong><i class="fas fa-reply me-2"></i>Related to:</strong>
-                    <span>${parentId || 'No parent mail'}</span>
-                </div>
+                
                 ${parentId ? `
                 <div class="mb-3">
                     <button class="btn btn-info" onclick="viewParentMail('${parentId}')">
@@ -1094,16 +1091,16 @@ function displayAttachments(mailData) {
     const attachmentContainer = document.getElementById('mail-attachments-container');
     if (!attachmentContainer) return;
     
-    // Check if this mail has a claim ID and attachments
-    const hasClaimId = mailData.claim_id && mailData.claim_id.trim() !== '';
+    // Check if this mail has attachments - remove claim ID requirement for better compatibility
     const attachmentPaths = mailData.extracted_data?.attachment_path || [];
+    const attachmentAnalysis = mailData.extracted_data?.attachment_analysis || [];
     
     console.log("Mail Data for attachments:", mailData);
-    console.log("Claim ID:", mailData.claim_id);
     console.log("Attachment Paths:", attachmentPaths);
+    console.log("Attachment Analysis:", attachmentAnalysis);
     
-    // Only show attachments if there's a claim ID and attachment paths
-    if (!hasClaimId || !attachmentPaths || attachmentPaths.length === 0) {
+    // Only show attachments if there are attachment paths
+    if (!attachmentPaths || attachmentPaths.length === 0) {
         attachmentContainer.classList.add('d-none');
         return;
     }
@@ -1116,6 +1113,12 @@ function displayAttachments(mailData) {
     attachmentPaths.forEach((attachmentPath, index) => {
         // Extract filename from path
         const filename = attachmentPath.split('\\').pop() || attachmentPath.split('/').pop() || attachmentPath;
+        
+        // Find corresponding risk analysis for this attachment
+        const riskAnalysis = attachmentAnalysis.find(analysis => {
+            const analysisFilename = analysis.path?.split('\\').pop() || analysis.path?.split('/').pop() || analysis.path;
+            return analysisFilename === filename;
+        });
         
         // Determine file type and icon
         const fileExtension = filename.split('.').pop().toLowerCase();
@@ -1154,39 +1157,114 @@ function displayAttachments(mailData) {
                 fileTypeClass = 'text-secondary';
         }
         
-        // Create attachment item
+        // Determine risk level styling and icon
+        let riskBadgeClass = 'badge bg-secondary';
+        let riskIcon = 'fas fa-question-circle';
+        let riskCategory = 'Unknown';
+        let riskRationale = 'No risk analysis available';
+        let confidenceLevel = '';
+        let showRiskAnalysis = false;
+        
+        if (riskAnalysis && riskAnalysis.risk) {
+            if (typeof riskAnalysis.risk === 'string') {
+                // Simple string risk (like the first attachment) - don't show risk analysis
+                showRiskAnalysis = false;
+            } else if (typeof riskAnalysis.risk === 'object') {
+                // Check if risk object contains the required keys: category, confidence, rationale
+                const hasCategory = riskAnalysis.risk.hasOwnProperty('category');
+                const hasConfidence = riskAnalysis.risk.hasOwnProperty('confidence');
+                const hasRationale = riskAnalysis.risk.hasOwnProperty('rationale');
+                
+                // Only show risk analysis if at least one of the required keys is present
+                if (hasCategory || hasConfidence || hasRationale) {
+                    showRiskAnalysis = true;
+                    
+                    // Complex risk object (like the second attachment)
+                    riskCategory = riskAnalysis.risk.category || 'Unknown';
+                    riskRationale = riskAnalysis.risk.rationale || 'No rationale provided';
+                    confidenceLevel = riskAnalysis.risk.confidence ? ` (${Math.round(riskAnalysis.risk.confidence * 100)}% confidence)` : '';
+                    
+                    // Set styling based on risk category
+                    switch (riskCategory.toLowerCase()) {
+                        case 'low':
+                            riskBadgeClass = 'badge bg-success';
+                            riskIcon = 'fas fa-check-circle';
+                            break;
+                        case 'medium':
+                            riskBadgeClass = 'badge bg-warning';
+                            riskIcon = 'fas fa-exclamation-triangle';
+                            break;
+                        case 'high':
+                            riskBadgeClass = 'badge bg-danger';
+                            riskIcon = 'fas fa-exclamation-circle';
+                            break;
+                        default:
+                            riskBadgeClass = 'badge bg-secondary';
+                            riskIcon = 'fas fa-question-circle';
+                    }
+                } else {
+                    showRiskAnalysis = false;
+                }
+            }
+        }
+        
+        // Create attachment item with enhanced layout including risk information
         const attachmentItem = document.createElement('div');
-        attachmentItem.className = 'attachment-item d-flex justify-content-between align-items-center p-3 mb-2 border rounded';
+        attachmentItem.className = 'attachment-item border rounded p-3 mb-3';
         attachmentItem.style.cursor = 'pointer';
         attachmentItem.style.transition = 'all 0.3s ease';
         
-        attachmentItem.innerHTML = `
-            <div class="d-flex align-items-center">
-                <i class="${fileIcon} ${fileTypeClass} me-3" style="font-size: 1.5rem;"></i>
-                <div>
-                    <div class="fw-bold text-dark">${filename}</div>
-                    <small class="text-muted">${fileExtension.toUpperCase()} File</small>
+        // Use claim_id if available, otherwise fallback to a generic download approach
+        const claimId = mailData.claim_id || 'no-claim';
+        
+        // Build the risk analysis section HTML only if we should show it
+        const riskAnalysisHtml = showRiskAnalysis ? `
+            <div class="risk-analysis-section mt-2 p-2 bg-light rounded">
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                    <div class="d-flex align-items-center">
+                        <i class="${riskIcon} me-2"></i>
+                        <span class="fw-semibold">Risk Assessment:</span>
+                        <span class="${riskBadgeClass} ms-2">${riskCategory}${confidenceLevel}</span>
+                    </div>
+                </div>
+                <div class="risk-rationale">
+                    <small class="text-muted">${riskRationale}</small>
                 </div>
             </div>
-            <div class="d-flex gap-2">
-                <button class="btn btn-outline-primary btn-sm" onclick="previewAttachment('${mailData.claim_id}', '${filename}')" title="Preview">
-                    <i class="fas fa-eye"></i>
-                </button>
-                <button class="btn btn-primary btn-sm" onclick="downloadAttachment('${mailData.claim_id}', '${filename}', event)" title="Download">
-                    <i class="fas fa-download"></i>
-                </button>
+        ` : '';
+        
+        attachmentItem.innerHTML = `
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div class="d-flex align-items-center flex-grow-1">
+                    <i class="${fileIcon} ${fileTypeClass} me-3" style="font-size: 1.5rem;"></i>
+                    <div class="flex-grow-1">
+                        <div class="fw-bold text-dark">${filename}</div>
+                        <small class="text-muted">${fileExtension.toUpperCase()} File</small>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-primary btn-sm" onclick="previewAttachment('${claimId}', '${filename}')" title="Preview">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="btn btn-primary btn-sm" onclick="downloadAttachment('${claimId}', '${filename}', event)" title="Download">
+                        <i class="fas fa-download"></i>
+                    </button>
+                </div>
             </div>
+            ${riskAnalysisHtml}
         `;
         
         // Add hover effects
         attachmentItem.addEventListener('mouseenter', function() {
             this.style.backgroundColor = '#f8f9fa';
-            this.style.boxShadow = '0 2px 5px rgba(0,0,0,0.1)';
+            this.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+            this.style.transform = 'translateY(-2px)';
         });
         
         attachmentItem.addEventListener('mouseleave', function() {
             this.style.backgroundColor = 'transparent';
             this.style.boxShadow = 'none';
+            this.style.transform = 'translateY(0)';
         });
         
         attachmentList.appendChild(attachmentItem);
