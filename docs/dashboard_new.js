@@ -1356,7 +1356,7 @@ function showImagePreviewModal(imageUrl, filename, claimId = null) {
         modal.id = 'attachment-preview-modal';
         modal.className = 'modal fade';
         modal.innerHTML = `
-            <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-dialog modal-lg modal-dialog-centered" style="transform: translate(0, -115px);">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title">Attachment Preview</h5>

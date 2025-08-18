@@ -451,6 +451,16 @@ body.dark-mode .mail-item .badge {
     border-left-width: 10px;
 }
 
+
+.mail-item[data-type="fnol"] .mail-type-label {
+    color: #568abb;
+    font-weight: 600;
+    background-color: rgba(89, 125, 182, 0.1);
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-left: 8px;
+}
+
 .mail-item[data-type="followup"] .mail-type-label {
     color: #8e44ad;
     font-weight: 600;
