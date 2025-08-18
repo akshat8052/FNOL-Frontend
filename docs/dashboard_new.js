@@ -1091,16 +1091,18 @@ function displayAttachments(mailData) {
     const attachmentContainer = document.getElementById('mail-attachments-container');
     if (!attachmentContainer) return;
     
+    const hasClaimId = mailData.claim_id && mailData.claim_id.trim() !== '';
     // Check if this mail has attachments - remove claim ID requirement for better compatibility
     const attachmentPaths = mailData.extracted_data?.attachment_path || [];
     const attachmentAnalysis = mailData.extracted_data?.attachment_analysis || [];
     
     console.log("Mail Data for attachments:", mailData);
+    console.log("Claim ID:", mailData.claim_id);
     console.log("Attachment Paths:", attachmentPaths);
     console.log("Attachment Analysis:", attachmentAnalysis);
     
     // Only show attachments if there are attachment paths
-    if (!attachmentPaths || attachmentPaths.length === 0) {
+    if (!hasClaimId || (!attachmentPaths || attachmentPaths.length === 0)) {
         attachmentContainer.classList.add('d-none');
         return;
     }
@@ -1224,7 +1226,7 @@ function displayAttachments(mailData) {
                     <div class="d-flex align-items-center">
                         <i class="${riskIcon} me-2"></i>
                         <span class="fw-semibold">Risk Assessment:</span>
-                        <span class="${riskBadgeClass} ms-2">${riskCategory}${confidenceLevel}</span>
+                        <span class="${riskBadgeClass} ms-2"> ${riskCategory}</span>
                     </div>
                 </div>
                 <div class="risk-rationale">
