@@ -1225,8 +1225,8 @@ function displayAttachments(mailData) {
                 <div class="d-flex align-items-center justify-content-between mb-1">
                     <div class="d-flex align-items-center">
                         <i class="${riskIcon} me-2"></i>
-                        <span class="fw-semibold">Risk Assessment:</span>
-                        <span class="${riskBadgeClass} ms-2"> ${riskCategory}</span>
+                        <span class="fw-semibold">Damage Assessment:</span>
+                        <span class="${riskBadgeClass} ms-2">${riskCategory}${confidenceLevel}</span>
                     </div>
                 </div>
                 <div class="risk-rationale">
